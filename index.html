@@ -129,8 +129,8 @@ table.board-t{border-collapse:collapse;width:100%;font-size:13px}
 /* tabs */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
   padding:0 max(16px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(16px,env(safe-area-inset-left,0px))}
-.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
-.tab{padding:12px 0;font-weight:700;font-size:14px;color:var(--muted);border-top:3px solid transparent}
+.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{padding:12px 0;font-weight:700;font-size:13px;color:var(--muted);border-top:3px solid transparent}
 .tab.on{color:var(--us);border-top-color:var(--us)}
 
 .toast{position:fixed;top:35%;left:50%;transform:translateX(-50%);background:var(--board);color:var(--board-ink);padding:8px 16px;border-radius:12px;z-index:50;font-size:14px}
@@ -147,6 +147,19 @@ table.board-t{border-collapse:collapse;width:100%;font-size:13px}
 .cmt .when{font-size:11px;color:var(--muted)}
 .cmt .txt{white-space:pre-wrap;word-break:break-word;font-size:14px;margin-top:2px}
 textarea.inp{min-height:72px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-size:13px;background:var(--surface)}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.nday{font-weight:700;font-size:13px;color:var(--muted);margin:4px 0 -2px}
+.ncard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.ncard.done{opacity:.62}
+.ncard .head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.cat{border-radius:99px;padding:0 8px;font-weight:700;font-size:12px;color:#fff}
+.ncard .txt{white-space:pre-wrap;word-break:break-word;font-size:15px}
+.ncard .task{white-space:pre-wrap;word-break:break-word;font-size:13px;background:var(--us-soft);color:var(--ink);border-radius:8px;padding:6px 8px}
+.ncard .acts{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tick{border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:13px;font-weight:700}
+.tick.on{background:var(--us);border-color:var(--us);color:#fff}
 .badge{display:inline-block;background:var(--us-soft);color:var(--us);border-radius:99px;font-size:11px;padding:0 6px;font-weight:700}
 </style>
 </head>
@@ -233,6 +246,30 @@ textarea.inp{min-height:72px;resize:vertical}
   </div>
 </section>
 
+<section id="tab-note" class="wrap" hidden>
+  <details id="noteForm" class="panel" open>
+    <summary>✏️ 記下教練的建議</summary>
+    <div class="form">
+      <label>日期<input id="n_date" type="date" class="inp"></label>
+      <label>誰給的建議<input id="n_coach" class="inp" placeholder="例：許教練"></label>
+      <label class="full">類別
+        <select id="n_cat" class="inp"></select>
+      </label>
+      <label class="full">建議內容<textarea id="n_text" class="inp" placeholder="例：殺球後要馬上回中，不要站著看球"></textarea></label>
+      <label class="full">練習作業（可不填）<textarea id="n_task" class="inp" style="min-height:52px" placeholder="例：每天殺球回中 3 組 × 20 球"></textarea></label>
+      <button id="btnNote" class="btn full">儲存這則建議</button>
+    </div>
+  </details>
+  <div class="panel">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px">
+      <h3 style="margin:0;flex:none">📒 建議清單</h3><span id="noteSum" class="small muted" style="flex:none"></span>
+    </div>
+    <div class="chips" id="noteStatus" style="margin-bottom:6px"></div>
+    <div class="chips" id="noteCats"></div>
+  </div>
+  <div id="noteList" class="wrap" style="gap:8px"></div>
+</section>
+
 <section id="tab-his" class="wrap" hidden>
   <div class="panel"><h3>🤝 歷史搭檔績效看板</h3><div id="boardFull"></div></div>
   <div class="panel"><h3>📊 歷史搭檔勝率對比</h3><div class="chartbox" style="height:260px"><canvas id="barChart"></canvas></div></div>
@@ -248,7 +285,8 @@ textarea.inp{min-height:72px;resize:vertical}
 <nav class="tabs"><div class="tabs-in">
   <button class="tab on" data-tab="rec">📝 紀錄</button>
   <button class="tab" data-tab="rep">📊 分析</button>
-  <button class="tab" data-tab="his">📚 歷史/搭檔</button>
+  <button class="tab" data-tab="note">🏸 練球筆記</button>
+  <button class="tab" data-tab="his">📚 歷史</button>
 </div></nav>
 <div id="toast" class="toast" hidden></div>
 <div id="modal" class="modal" hidden><div class="modal-box">
@@ -290,7 +328,8 @@ function ask(msg,{yes='確定',no='取消',danger=false,input=false}={}){
 const tell=msg=>ask(msg,{yes:'知道了',no:''});
 
 /* ---------- 狀態 ---------- */
-let recs=lsGet(LS_REC,[]), comments=[];
+let recs=lsGet(LS_REC,[]), comments=[], notes=lsGet('bd_notes_v1',[]);
+let noteFilter={status:'todo',cat:'全部'};
 let cur=lsGet(LS_CUR,null)||{info:{kc:'楷宸',pt:'',opp:'',date:today(),match:'1',game:'1'},events:[],t0:null,rev:0};
 let len='', view=null, pieChart=null, barChart=null;
 let pin=lsGet(LS_PIN,''), canWrite=false, ver=null, writing=false, dirty=false;
@@ -329,7 +368,7 @@ function setSync(s){const el=$('#sync');el.className='sync '+s;el.textContent={o
 async function loadAll(){
   const r=await apiGet('all');
   if(!r.ok)throw new Error(r.error);
-  recs=(r.games||[]).sort((a,b)=>a.savedAt-b.savedAt);comments=r.comments||[];ver=r.ver;
+  recs=(r.games||[]).sort((a,b)=>a.savedAt-b.savedAt);comments=r.comments||[];notes=r.notes||[];ver=r.ver;lsSet('bd_notes_v1',notes);
   lsSet(LS_REC,recs);applyLive(r.live);refreshViews();
 }
 function applyLive(live){
@@ -393,7 +432,7 @@ function applyMode(){
   const lb=$('#btnLock');lb.textContent=ro?'🔒 觀看模式':'🔓 記錄模式';lb.classList.toggle('on',!ro);
   document.querySelectorAll('#infoBox input,#infoBox select').forEach(el=>el.disabled=ro);
   if(!ro&&!cur.info.pt)$('#infoBox').open=true;
-  render();if(!$('#tab-his').hidden)renderHistory();
+  render();if(!$('#tab-his').hidden)renderHistory();if(!$('#tab-note').hidden)renderNotes();
 }
 
 /* ---------- 計分按鈕 ---------- */
@@ -476,6 +515,7 @@ function refreshViews(){
   render();
   if(!$('#tab-his').hidden)renderHistory();
   if(!$('#tab-rep').hidden&&view)renderComments();
+  if(!$('#tab-note').hidden)renderNotes();
 }
 
 /* ---------- 分析 ---------- */
@@ -573,6 +613,61 @@ $('#btnCmt').onclick=async()=>{
   btn.disabled=false;btn.textContent='送出留言';
 };
 
+/* ---------- 練球筆記 ---------- */
+const NOTE_CATS={'技術':'#1c7ed6','步法':'#2b8a3e','戰術':'#7048e8','雙打配合':'#d6336c','體能':'#e8590c','心理':'#5c6b73','其他':'#8c5a2b'};
+$('#n_cat').innerHTML=Object.keys(NOTE_CATS).map(c=>`<option>${c}</option>`).join('');
+function renderNotes(){
+  const todo=notes.filter(n=>!n.done).length;
+  $('#noteSum').textContent=`共 ${notes.length} 則・待練習 ${todo} 則`;
+  const st=[['todo','待練習'],['done','已改善'],['all','全部']];
+  $('#noteStatus').innerHTML=st.map(([k,t])=>`<button class="chip${noteFilter.status===k?' on':''}" data-st="${k}">${t}</button>`).join('');
+  $('#noteCats').innerHTML=['全部',...Object.keys(NOTE_CATS)].map(c=>`<button class="chip${noteFilter.cat===c?' on':''}" data-cat="${c}">${c}</button>`).join('');
+  const list=notes.filter(n=>(noteFilter.status==='all'||(noteFilter.status==='done')===n.done)&&(noteFilter.cat==='全部'||n.cat===noteFilter.cat))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||b.time-a.time);
+  let day='';
+  $('#noteList').innerHTML=list.map(n=>{
+    const h=n.date!==day?`<div class="nday">${esc(n.date)}</div>`:'';day=n.date;
+    return h+`<div class="ncard${n.done?' done':''}">
+      <div class="head"><span class="cat" style="background:${NOTE_CATS[n.cat]||NOTE_CATS['其他']}">${esc(n.cat)}</span><span>${esc(n.coach)}</span></div>
+      <div class="txt">${esc(n.text)}</div>
+      ${n.task?`<div class="task">🎯 練習作業：${esc(n.task)}</div>`:''}
+      <div class="acts"><button class="tick${n.done?' on':''}" data-nid="${esc(n.id)}" data-done="${n.done?0:1}">${n.done?'✅ 已改善':'⬜ 標記已改善'}</button>
+      ${canWrite?`<button class="small" data-ndel="${esc(n.id)}" style="color:var(--them)">刪除</button>`:''}</div>
+    </div>`}).join('')||`<div class="panel empty">${notes.length?'這個篩選條件下沒有建議。':'還沒有任何建議。練球時教練說的重點，記在上面的表格裡。'}</div>`;
+}
+$('#noteStatus').addEventListener('click',e=>{const b=e.target.closest('[data-st]');if(b){noteFilter.status=b.dataset.st;renderNotes()}});
+$('#noteCats').addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(b){noteFilter.cat=b.dataset.cat;renderNotes()}});
+$('#noteList').addEventListener('click',async e=>{
+  const t=e.target.closest('[data-nid]'),d=e.target.closest('[data-ndel]');
+  if(!online&&(t||d))return tell('還沒有連上 Google 試算表。');
+  if(t){
+    const n=notes.find(x=>x.id===t.dataset.nid);if(!n)return;
+    n.done=t.dataset.done==='1';renderNotes();
+    try{const r=await apiPost({action:'toggleNote',id:n.id,done:n.done});if(!r.ok)throw 0;loadAll().catch(()=>{})}
+    catch(err){n.done=!n.done;renderNotes();tell('沒有更新成功，請確認網路後再試。')}
+  }
+  if(d&&await ask('確定刪除這則建議？刪除後無法復原。',{yes:'刪除',danger:true})){
+    try{const r=await apiPost({action:'deleteNote',pin,id:d.dataset.ndel});if(r.error==='pin')return lockOut();if(!r.ok)throw 0;await loadAll()}
+    catch(err){tell('刪除失敗，請確認網路後再試。')}
+  }
+});
+$('#btnNote').onclick=async()=>{
+  const text=$('#n_text').value.trim();
+  if(!text)return toast('請先寫建議內容');
+  if(!online)return tell('還沒有連上 Google 試算表，暫時不能儲存。');
+  const coach=$('#n_coach').value.trim()||'教練';
+  lsSet('bd_coach_v1',coach);
+  const btn=$('#btnNote');btn.disabled=true;btn.textContent='儲存中…';
+  try{
+    const r=await apiPost({action:'addNote',date:$('#n_date').value||today(),coach,cat:$('#n_cat').value,text,task:$('#n_task').value.trim()});
+    if(!r.ok)throw 0;
+    $('#n_text').value='';$('#n_task').value='';noteFilter={status:'todo',cat:'全部'};
+    await loadAll();renderNotes();toast('已儲存 ✅');
+  }catch(err){tell('沒有儲存成功，請確認網路後再按一次。')}
+  btn.disabled=false;btn.textContent='儲存這則建議';
+};
+$('#n_date').value=today();$('#n_coach').value=lsGet('bd_coach_v1','');
+
 /* ---------- 搭檔看板 ---------- */
 function partnerStats(){
   const m={};
@@ -647,11 +742,12 @@ async function saveGame(){
 /* ---------- 分頁 ---------- */
 function openGame(r){view={ev:r.events||[],info:r,title:`${r.date} 第${r.match}場 第${r.game}局`,target:'g:'+r.id};switchTab('rep')}
 function switchTab(name){
-  ['rec','rep','his'].forEach(t=>$('#tab-'+t).hidden=t!==name);
+  ['rec','rep','note','his'].forEach(t=>$('#tab-'+t).hidden=t!==name);
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
   window.scrollTo(0,0);
   if(name==='rep')renderReport();
   if(name==='his')renderHistory();
+  if(name==='note')renderNotes();
 }
 
 /* ---------- 綁定 ---------- */
