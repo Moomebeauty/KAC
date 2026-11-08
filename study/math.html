@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d6b4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>楷宸數學闖關</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: 單欄手機優先；首頁 → 比賽/練習（記分板＋題目卡）→ 結算；重點卡獨立一頁。與讀書系統同一套球場綠＋羽毛球軟木橘 */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --ink:#18241f; --muted:#5d6b64; --line:#d9e0db;
+  --court:#1d6b4f; --court-soft:#e3efe9; --cork:#c77a12; --cork-soft:#fbeed8; --bad:#b4432f; --bad-soft:#f8e3de;
+  --f-display:"LXGW WenKai TC","Noto Sans TC",serif; --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif; --f-num:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101714; --surface:#18221d; --ink:#e7eee9; --muted:#9aaba2; --line:#2b3a33;
+  --court:#5cc49b; --court-soft:#1d3329; --cork:#f0a940; --cork-soft:#3a2b14; --bad:#ef8a74; --bad-soft:#3b211c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101714; --surface:#18221d; --ink:#e7eee9; --muted:#9aaba2; --line:#2b3a33;
+  --court:#5cc49b; --court-soft:#1d3329; --cork:#f0a940; --cork-soft:#3a2b14; --bad:#ef8a74; --bad-soft:#3b211c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:30px}
+h2{font-size:20px}
+.label{font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.small{font-size:13px;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--court);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:16px}
+.btn.pri{background:var(--court);color:var(--surface)}
+.btn.cork{background:var(--cork);color:#fff}
+.btn.ghost{background:transparent;border:1px solid var(--line);font-weight:500;font-size:14px;padding:8px 12px}
+
+/* home */
+.match{background:var(--court);color:var(--surface);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.match::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(90deg,transparent calc(50% - 1px),rgba(255,255,255,.25) calc(50% - 1px),rgba(255,255,255,.25) calc(50% + 1px),transparent calc(50% + 1px)),
+  linear-gradient(transparent 30%,rgba(255,255,255,.18) 30%,rgba(255,255,255,.18) calc(30% + 2px),transparent calc(30% + 2px));pointer-events:none}
+.match h2{font-size:22px}
+.match .btn{background:var(--surface);color:var(--court);align-self:flex-start;position:relative;z-index:1}
+.match p{margin:0;font-size:14px;opacity:.92}
+.units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:440px){.units{grid-template-columns:1fr}}
+.unit{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0}
+.unit .code{font-family:var(--f-num);font-weight:700;color:var(--court)}
+.unit .nm{font-weight:700;font-size:15px}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--court)}
+.unit .st{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* play */
+.board{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;background:var(--court);color:var(--surface);border-radius:14px;padding:10px 14px}
+.side{display:flex;flex-direction:column;align-items:center;gap:0}
+.side .who{font-size:13px;opacity:.9}
+.side .pts{font-family:var(--f-num);font-size:40px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.vs{font-family:var(--f-num);opacity:.7}
+.prog{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.qunit{font-size:12px;font-weight:700;color:var(--cork);letter-spacing:.04em}
+.q{font-size:20px;font-weight:500;line-height:1.7;font-family:var(--f-body)}
+.q .m,.opt,.ex .m{font-family:var(--f-num)}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;font-family:var(--f-num)}
+.frac span:first-child{border-bottom:2px solid currentColor;padding:0 4px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:420px){.opts{grid-template-columns:1fr}}
+.opt{border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:14px 10px;font-size:18px;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.opt:hover:not(:disabled){border-color:var(--court)}
+.opt.right{border-color:var(--court);background:var(--court-soft);color:var(--court)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.fb.ok{background:var(--court-soft)}
+.fb.no{background:var(--bad-soft)}
+.fb .head{font-weight:700;font-family:var(--f-display);font-size:18px}
+.fb.ok .head{color:var(--court)} .fb.no .head{color:var(--bad)}
+.ex{white-space:pre-wrap;font-size:14.5px}
+.coach{border:2px dashed var(--cork);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.coach .ch{font-weight:700;font-family:var(--f-display);font-size:17px;color:var(--cork)}
+.coach .cc{display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--cork);padding-left:10px}
+.rembadge{color:var(--cork);font-weight:700}
+
+
+/* result */
+.big{font-family:var(--f-display);font-size:26px;font-weight:700}
+.final{font-family:var(--f-num);font-size:48px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--court)}
+.wl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.wl li{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.ut{display:flex;flex-direction:column;gap:6px}
+.ut div{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:14px}
+.ut b{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+
+/* flashcards */
+.flash{perspective:1000px;min-height:220px}
+.fc{position:relative;width:100%;min-height:220px;border:0;padding:0;background:none;transform-style:preserve-3d;transition:transform .45s}
+.fc.flip{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:16px;padding:22px;display:flex;flex-direction:column;justify-content:center;gap:10px;backface-visibility:hidden;border:1px solid var(--line);text-align:left}
+.front{background:var(--surface)}
+.back{background:var(--court-soft);transform:rotateY(180deg)}
+.face .t{font-family:var(--f-display);font-size:22px;font-weight:700}
+.face .a{font-size:17px;white-space:pre-line;font-family:var(--f-body)}
+.face .hint{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.fc{transition:none}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+const app=document.getElementById('app');
+const UNITS=[
+  {code:'2-2',name:'根式的運算'},
+  {code:'2-3',name:'畢氏定理'},
+  {code:'3-1',name:'提公因式與乘法公式'},
+  {code:'3-2',name:'十字交乘法'},
+];
+const M='−';
+/* ---------- 小工具 ---------- */
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[R(0,a.length-1)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const sq=n=>n*n;
+const fn=n=>n<0?M+(-n):String(n);
+function simp(n){for(let k=Math.floor(Math.sqrt(n));k>1;k--)if(n%(k*k)===0)return[k,n/(k*k)];return[1,n]}
+function rad(c,r){if(r===1)return String(c);return(c===1?'':String(c))+'√'+r}
+function radN(n){const[c,r]=simp(n);return rad(c,r)}
+function term(c,v,first){if(c===0)return'';const a=Math.abs(c),body=(a===1&&v)?v:a+v;return first?(c<0?M:'')+body:(c<0?' '+M+' ':' + ')+body}
+function poly(cs){let s='',f=true;for(const[c,v]of cs){if(!c)continue;s+=term(c,v,f);f=false}return s||'0'}
+function lin(a,p){return'('+poly([[a,'x'],[p,'']])+')'}
+function pair(p,q){return p>=q?lin(1,p)+lin(1,q):lin(1,q)+lin(1,p)}
+function opts(a,ds,fb){const s=[a];for(const d of ds){if(d!=null&&!s.includes(d))s.push(d);if(s.length===4)break}
+  let g=0;while(s.length<4&&g++<80){const d=fb();if(!s.includes(d))s.push(d)}return shuffle(s)}
+const frac=(t,b)=>`<span class="frac"><span>${t}</span><span>${b}</span></span>`;
+const m=s=>`<span class="m">${s}</span>`;
+
+/* ---------- 題目產生器（每次都是新題目） ---------- */
+const GEN=[
+ [ // 2-2 根式
+  ()=>{const b=pick([2,3,5,6,7]),a=R(2,9),n=a*a*b,ans=rad(a,b),ds=[];
+    for(let k=2;k<a;k++)if(a%k===0)ds.push(rad(k,sq(a/k)*b));
+    return{q:`把 ${m('√'+n)} 化成最簡根式`,a:ans,o:opts(ans,shuffle(ds).concat([rad(a*a,b),rad(a+1,b)]),()=>rad(R(2,9),b)),
+      ex:`${n} = ${a*a} × ${b} = ${a}² × ${b}\n所以 √${n} = ${ans}\n根號裡不能再有平方數，才是最簡根式。`}},
+  ()=>{const b=pick([2,3,5]);let x=R(1,4),y=R(2,5);if(x===y)y++;const sub=Math.random()<.4,hi=Math.max(x,y),lo=Math.min(x,y);
+    const p=sub?hi:x,q=sub?lo:y,X=sq(p)*b,Y=sq(q)*b,c=sub?p-q:p+q,ans=rad(c,b);
+    return{q:`${m('√'+X+(sub?' '+M+' ':' + ')+'√'+Y)} = ?`,a:ans,o:opts(ans,['√'+(sub?X-Y:X+Y),rad(c,2*b),rad(p*q,b)],()=>rad(R(1,9),b)),
+      ex:`√${X} = ${rad(p,b)}，√${Y} = ${rad(q,b)}\n化簡後根號裡都是 ${b}，是同類方根，係數${sub?'相減':'相加'}：\n= ${ans}\n注意：根號裡的數不能直接${sub?'相減':'相加'}！`}},
+  ()=>{let a,b,c,r,g=0;do{a=pick([2,3,5,6,10]);b=pick([6,8,10,12,14,15,18,20]);[c,r]=simp(a*b)}while((c===1||a===b)&&g++<40);
+    const ans=rad(c,r);
+    return{q:`${m('√'+a+' × √'+b)} = ?（化成最簡根式）`,a:ans,o:opts(ans,['√'+(a+b),r!==c?rad(r,c):null,rad(c+1,r)],()=>rad(R(2,9),r)),
+      ex:`√${a} × √${b} = √${a*b}\n${a*b} = ${c*c} × ${r}${r===1?'':''}\n= ${ans}`}},
+  ()=>{const b=pick([2,3,5,6,7]),k0=R(1,4),k=b*k0,ans=rad(k0,b);
+    return{q:`${frac(k,'√'+b)} 分母有理化後是？`,a:ans,o:opts(ans,[rad(k,b),String(k0),'√'+b+' / '+k0],()=>rad(R(1,6),b)),
+      ex:`分子、分母同乘 √${b}：\n${k} / √${b} = ${k}√${b} / ${b} = ${ans}`}},
+ ],
+ [ // 2-3 畢氏定理
+  ()=>{const[a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[7,24,25],[9,12,15]]);
+    return{q:`直角三角形的兩股是 ${m(a)} 和 ${m(b)}，斜邊是多少？`,a:String(c),o:opts(String(c),[String(a+b),String(c+1),radN(b*b-a*a)],()=>String(c+R(-3,3))),
+      ex:`斜邊² = ${a}² + ${b}² = ${a*a} + ${b*b} = ${c*c}\n斜邊 = √${c*c} = ${c}`}},
+  ()=>{const[a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15]]);
+    return{q:`直角三角形的斜邊是 ${m(c)}，一股是 ${m(a)}，另一股是多少？`,a:String(b),o:opts(String(b),[radN(c*c+a*a),String(c-a),String(b+1)],()=>String(b+R(-3,3))),
+      ex:`另一股² = ${c}² ${M} ${a}² = ${c*c} ${M} ${a*a} = ${b*b}\n另一股 = ${b}\n已知斜邊時，要用「減」的！`}},
+  ()=>{let a,b,s,g=0;do{a=R(1,6);b=R(a,7);s=a*a+b*b}while(Number.isInteger(Math.sqrt(s))&&g++<40);const ans=radN(s);
+    return{q:`直角三角形的兩股是 ${m(a)} 和 ${m(b)}，斜邊是多少？`,a:ans,o:opts(ans,[String(a+b),'√'+(a+b),b>a?radN(b*b-a*a):null],()=>radN(s+R(1,6))),
+      ex:`斜邊² = ${a}² + ${b}² = ${a*a} + ${b*b} = ${s}\n斜邊 = √${s}${ans!=='√'+s?' = '+ans:''}`}},
+  ()=>{let[a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13]]);if(Math.random()<.5)[a,b]=[b,a];
+    const x1=R(-5,5),y1=R(-5,5),x2=x1+pick([1,-1])*a,y2=y1+pick([1,-1])*b;
+    return{q:`坐標平面上 A(${m(fn(x1)+', '+fn(y1))})、B(${m(fn(x2)+', '+fn(y2))})，AB 的距離是？`,a:String(c),o:opts(String(c),[String(a+b),String(c+1),radN(a+b)],()=>String(c+R(-3,3))),
+      ex:`橫的差：|${fn(x2)} ${M} (${fn(x1)})| = ${a}\n直的差：|${fn(y2)} ${M} (${fn(y1)})| = ${b}\nAB = √(${a}² + ${b}²) = √${c*c} = ${c}`}},
+  ()=>{const T=[[3,4,5],[5,12,13],[8,15,17],[6,8,10],[7,24,25]],t=pick(T),k=t[0]===3?R(1,3):1,[a,b,c]=t.map(x=>x*k),ans=`${a}、${b}、${c}`;
+    const ds=shuffle(T.filter(x=>x!==t)).map(([x,y,z],i)=>i%2?`${x}、${y+1}、${z}`:`${x}、${y}、${z+1}`);
+    return{q:`下面哪一組可以是直角三角形的三邊長？`,a:ans,o:opts(ans,ds,()=>`${R(2,9)}、${R(10,14)}、${R(15,19)}`),
+      ex:`最長邊² ＝ 另外兩邊的平方和，才是直角三角形：\n${a}² + ${b}² = ${a*a} + ${b*b} = ${c*c} = ${c}² ✓`}},
+ ],
+ [ // 3-1 提公因式、乘法公式
+  ()=>{let g=R(2,6),p,q;do{p=R(1,5);q=R(1,7)}while(gcd(p,q)!==1);const ans=`${g}x${lin(p,q)}`;
+    return{q:`因式分解：${m(poly([[g*p,'x²'],[g*q,'x']]))}`,a:ans,o:opts(ans,[`${g}(${poly([[p,'x²'],[q,'x']])})`,`x${lin(g*p,g*q)}`,`${g}x${lin(p,g*q)}`],()=>`${R(2,6)}x${lin(R(1,5),R(1,7))}`),
+      ex:`${g*p} 和 ${g*q} 的最大公因數是 ${g}，兩項都有 x\n公因式是 ${g}x，提出來：\n= ${ans}\n要提「最大」的公因式，提完括號裡不能再提。`}},
+  ()=>{let a,b;do{a=pick([1,1,1,2,3]);b=R(2,9)}while(gcd(a,b)!==1);const ans=lin(a,b)+lin(a,-b),A=(a===1?'':a)+'x';
+    return{q:`因式分解：${m(poly([[a*a,'x²'],[-b*b,'']]))}`,a:ans,o:opts(ans,[lin(a,-b)+'²',lin(a,b)+'²',lin(a*a,b)+lin(1,-b)],()=>lin(a,R(2,9))+lin(a,-R(2,9))),
+      ex:`${a*a===1?'':a*a}x² = (${A})²，${b*b} = ${b}²\n平方差公式：A² ${M} B² = (A + B)(A ${M} B)\n= ${ans}`}},
+  ()=>{const b=R(1,9),s=pick([1,-1]),ans=lin(1,s*b)+'²';
+    return{q:`因式分解：${m(poly([[1,'x²'],[2*b*s,'x'],[b*b,'']]))}`,a:ans,o:opts(ans,[lin(1,b)+lin(1,-b),lin(1,-s*b)+'²',lin(1,s*b*b)+'²'],()=>lin(1,s*R(1,9))+'²'),
+      ex:`首項 x²，末項 ${b*b} = ${b}²\n中間項 ${s<0?M:''}${2*b}x = ${s<0?M:''}2 × x × ${b}\n符合「${s>0?'和':'差'}的平方」公式：\n= ${ans}`}},
+  ()=>{const a=R(51,99),b=100-a,ans=String(100*(a-b));
+    return{q:`用乘法公式速算：${m(a+'² '+M+' '+b+'²')} = ?`,a:ans,o:opts(ans,[String(sq(a-b)),String(100*(a-b)+100),String(10*(a-b))],()=>String(100*(a-b)+pick([-200,200,-10,10]))),
+      ex:`用平方差公式：\n${a}² ${M} ${b}² = (${a} + ${b})(${a} ${M} ${b})\n= 100 × ${a-b} = ${ans}`}},
+ ],
+ [ // 3-2 十字交乘
+  ()=>{let p,q;do{p=R(-9,9);q=R(-9,9)}while(!p||!q||p===q||p===-q);const ans=pair(p,q);
+    return{q:`因式分解：${m(poly([[1,'x²'],[p+q,'x'],[p*q,'']]))}`,a:ans,o:opts(ans,[pair(-p,-q),pair(p,-q),pair(-p,q)],()=>pair(R(1,9),-R(1,9))),
+      ex:`找兩個數：相乘 = ${fn(p*q)}、相加 = ${fn(p+q)}\n→ ${fn(p)} 和 ${fn(q)}\n（${fn(p)} × ${fn(q)} = ${fn(p*q)}，${fn(p)} + ${fn(q)} = ${fn(p+q)}）\n= ${ans}`}},
+  ()=>{let a,p,q;do{a=pick([2,3,5]);p=R(-7,7);q=R(-6,6)}while(!p||!q||gcd(a,p)!==1||a*q+p===0);const ans=lin(a,p)+lin(1,q);
+    return{q:`因式分解：${m(poly([[a,'x²'],[a*q+p,'x'],[p*q,'']]))}`,a:ans,o:opts(ans,[lin(a,q)+lin(1,p),lin(a,-p)+lin(1,-q),lin(a,p)+lin(1,-q),lin(a,-p)+lin(1,q)],()=>lin(a,R(-7,7)||1)+lin(1,R(-6,6)||1)),
+      ex:`十字交乘：\n  ${a}x　 ${fn(p)}\n    x　 ${fn(q)}\n交叉相乘再相加：${a}x × (${fn(q)}) + x × (${fn(p)}) = ${fn(a*q+p)}x ✓ 等於中間項\n= ${ans}`}},
+  ()=>{let p,q;do{p=R(-9,9);q=R(-9,9)}while(!p||!q||p===q||p===-q);const ans=lin(1,p);
+    return{q:`下面哪一個是 ${m(poly([[1,'x²'],[p+q,'x'],[p*q,'']]))} 的因式？`,a:ans,o:opts(ans,[lin(1,-p),lin(1,-q),lin(1,p+q)],()=>lin(1,R(-12,12)||13)),
+      ex:`先分解：相乘 = ${fn(p*q)}、相加 = ${fn(p+q)} → ${fn(p)} 和 ${fn(q)}\n${poly([[1,'x²'],[p+q,'x'],[p*q,'']])} = ${pair(p,q)}\n所以 ${ans} 是因式。`}},
+ ],
+];
+const CMAP=[{0:['什麼是最簡根式？'],1:['什麼是同類方根？'],2:['√a × √b = ？','什麼是最簡根式？'],3:['分母有理化怎麼做？']},
+ {0:['畢氏定理','常見的畢氏數'],1:['畢氏定理'],2:['畢氏定理','什麼是最簡根式？'],3:['坐標上兩點距離'],4:['畢氏定理','常見的畢氏數']},
+ {0:['因式分解第一步？'],1:['平方差公式'],2:['和的平方、差的平方'],3:['平方差公式']},
+ {0:['x² + bx + c 怎麼分解？','分解完怎麼檢查？'],1:['ax² + bx + c 怎麼分解？','分解完怎麼檢查？'],2:['x² + bx + c 怎麼分解？']}];
+function cardsFor(q){const t=(CMAP[q.u]||{})[q.g]||[];return CARDS.filter(c=>t.includes(c[1]))}
+function makeQ(u,g){const gi=g!=null?g:R(0,GEN[u].length-1),q=GEN[u][gi]();q.u=u;q.g=gi;return q}
+
+/* ---------- 重點卡 ---------- */
+const CARDS=[
+ ['2-2','什麼是最簡根式？','根號裡沒有能開出來的平方數，分母也沒有根號。\n例：√12 = 2√3'],
+ ['2-2','√a × √b = ？','√(a × b)\n例：√2 × √8 = √16 = 4'],
+ ['2-2','什麼是同類方根？','化簡後根號裡一樣，才能加減。\n2√3 + 5√3 = 7√3\n√2 + √3 不能合併！'],
+ ['2-2','分母有理化怎麼做？','分子、分母同乘分母的根號。\n3 / √2 = 3√2 / 2'],
+ ['2-3','畢氏定理','直角三角形：a² + b² = c²\nc 是斜邊（最長邊、直角的對面）'],
+ ['2-3','常見的畢氏數','3、4、5\n5、12、13\n8、15、17\n7、24、25\n（倍數也可以：6、8、10）'],
+ ['2-3','坐標上兩點距離','橫的差² + 直的差²，再開根號\n√((x₁ − x₂)² + (y₁ − y₂)²)'],
+ ['2-3','常見平方數','11²=121　12²=144　13²=169\n14²=196　15²=225　16²=256\n17²=289　18²=324　19²=361'],
+ ['3-1','因式分解第一步？','先看有沒有公因式可以提出來！\n6x² + 9x = 3x(2x + 3)'],
+ ['3-1','平方差公式','a² − b² = (a + b)(a − b)\n例：x² − 49 = (x + 7)(x − 7)'],
+ ['3-1','和的平方、差的平方','a² + 2ab + b² = (a + b)²\na² − 2ab + b² = (a − b)²'],
+ ['3-2','x² + bx + c 怎麼分解？','找兩個數：相乘 = c、相加 = b\nx² + 5x + 6 → 2 和 3 → (x + 2)(x + 3)'],
+ ['3-2','ax² + bx + c 怎麼分解？','首項拆、末項拆，交叉相乘加起來 = 中間項\n2x² + 7x + 3 = (2x + 1)(x + 3)'],
+ ['3-2','分解完怎麼檢查？','把括號乘回去，看是不是原來的式子。'],
+];
+
+/* ---------- 紀錄（存在這支手機） ---------- */
+let ST={u:[[0,0],[0,0],[0,0],[0,0]],wins:0,games:0};
+try{const v=JSON.parse(localStorage.getItem('kc-math')||'null');if(v&&v.u)ST=v}catch(e){}
+function saveST(){try{localStorage.setItem('kc-math',JSON.stringify(ST))}catch(e){}}
+
+/* ---------- 遊戲狀態 ---------- */
+let G=null;
+const CHEER=['殺球得分！','漂亮的網前小球！','反手過渡，穩！','跳殺成功！','這球太乾淨了！','平抽快攻得分！'];
+const OOPS=['被對手抓到空檔…','這球掛網了…','出界了，看一下解法','被殺球了，下一球拿回來！'];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function home(){
+  G=null;
+  app.innerHTML=`
+  <header style="display:flex;flex-direction:column;gap:4px">
+    <a href="./" style="color:var(--court);font-size:14px;font-weight:700;text-decoration:none">← 回讀書系統</a>
+    <span class="label">第二次段考 · 數學 · 南一版</span>
+    <h1>楷宸數學闖關</h1>
+    <div class="small">題目每次都不一樣，可以一直練。錯的題目會附上解法。</div>
+  </header>
+  <section class="match">
+    <span class="label" style="color:inherit;opacity:.85">比賽模式 · 四個單元混合</span>
+    <h2>對戰「錯題魔王」</h2>
+    <p>答對你得分，答錯對手得分。先拿到 11 分獲勝，10 比 10 之後要領先 2 分（最多打到 15 分）。一場大約 10 分鐘。</p>
+    <button class="btn" id="startMatch">開打</button>
+    <div style="font-size:13px;opacity:.9;position:relative;z-index:1">戰績：${ST.wins} 勝 / ${ST.games} 場</div>
+  </section>
+  <section class="card">
+    <h2>單元特訓（每次 10 題）</h2>
+    <div class="units">${UNITS.map((u,i)=>{const[t,c]=ST.u[i],pct=t?Math.round(c/t*100):0;
+      return`<button class="unit" data-unit="${i}"><span class="code">${u.code}</span><span class="nm">${u.name}</span>
+        <span class="meter"><i style="width:${pct}%"></i></span><span class="st">${t?`答對率 ${pct}%（${c}/${t}）`:'還沒練過'}</span></button>`}).join('')}</div>
+    <div class="small">答對率最低的單元，就是最該先練的。</div>
+  </section>
+  <section class="card">
+    <h2>重點卡</h2>
+    <div class="small">${CARDS.length} 張公式和觀念卡。點卡片翻面，不熟的會再出現，全部記住就過關。適合搭車、等比賽時看。</div>
+    <button class="btn cork" id="startCards" style="align-self:flex-start">開始翻卡</button>
+  </section>`;
+  document.getElementById('startMatch').onclick=()=>start('match');
+  document.getElementById('startCards').onclick=cards;
+  app.querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>start('unit',+b.dataset.unit));
+  window.scrollTo(0,0);
+}
+
+function start(mode,u){
+  G={mode,u,me:0,op:0,n:0,hist:[],last:-1};
+  next();
+}
+function over(){if(G.mode==='unit')return G.n>=10;const a=G.me,b=G.op;return a===15||b===15||((a>=11||b>=11)&&Math.abs(a-b)>=2)}
+function next(){
+  if(over())return result();
+  let u=G.u;
+  if(G.mode==='match'){do{u=R(0,3)}while(u===G.last&&Math.random()<.7);G.last=u}
+  G.q=makeQ(u);G.n++;G.done=false;G.tries=0;renderQ();
+}
+function renderQ(){
+  const q=G.q,U=UNITS[q.u];
+  app.innerHTML=`
+  <div class="prog"><button class="btn ghost" id="quit">← 離開</button>
+    <span class="small">${q.rem?'<span class="rembadge">補救球 · 同類型再試一次（不算分）</span>':G.mode==='unit'?`第 ${G.n} / 10 題 · 答對 ${G.me}`:`第 ${G.n} 球`}</span></div>
+  ${G.mode==='match'?`<div class="board" aria-label="比分"><div class="side"><span class="who">楷宸</span><span class="pts">${G.me}</span></div><span class="vs">:</span><div class="side"><span class="who">錯題魔王</span><span class="pts">${G.op}</span></div></div>`:''}
+  <section class="qcard">
+    <span class="qunit">${U.code} ${U.name}</span>
+    <div class="q">${q.q}</div>
+    <div class="opts">${q.o.map((o,i)=>`<button class="opt" data-o="${i}">${esc(o)}</button>`).join('')}</div>
+    <div id="fb"></div>
+  </section>`;
+  document.getElementById('quit').onclick=home;
+  app.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>answer(+b.dataset.o));
+}
+function coach(q){const cs=cardsFor(q);return `<div class="coach"><div class="ch">🧑‍🏫 教練暫停：先把觀念弄懂</div>${cs.map(c=>`<div class="cc"><b>${esc(c[1])}</b><div class="ex">${esc(c[2])}</div></div>`).join('')}<div class="small">看懂了嗎？接著打一球「同類型」的補救球（不算分）。答對了，才代表這個觀念真的補起來。</div></div>`}
+function remedial(){const b=G.q;G.tries=(G.tries||0)+1;let q,g=0;do{q=makeQ(b.u,b.g)}while(q.q===b.q&&g++<10);q.rem=true;G.q=q;G.done=false;renderQ();window.scrollTo(0,0)}
+function answer(i){
+  if(G.done)return;G.done=true;
+  const q=G.q,ch=q.o[i],ok=ch===q.a;
+  app.querySelectorAll('[data-o]').forEach((b,j)=>{b.disabled=true;if(q.o[j]===q.a)b.classList.add('right');else if(j===i)b.classList.add('wrong')});
+  const fb=document.getElementById('fb'),sayB='';
+  if(q.rem){
+    if(ok)G.fixed=(G.fixed||0)+1;
+    const more=!ok&&G.tries<3;
+    fb.innerHTML=`<div class="fb ${ok?'ok':'no'}"><div class="head">${ok?'觀念補起來了！✅':'還差一點，再看一次解析'}</div>
+      ${ok?'':`<div>正確答案：<b class="m">${esc(q.a)}</b></div>`}${sayB}<div class="ex">${esc(q.ex)}</div>
+      <div class="row">${more?'<button class="btn cork" id="rem">再一球同類型</button>':''}<button class="btn pri" id="nx">${over()?'看結果':(G.mode==='match'?'回到比賽，下一球':'下一題')}</button></div></div>`;
+  }else{
+    ST.u[q.u][0]++;if(ok)ST.u[q.u][1]++;saveST();
+    if(ok)G.me++;else G.op++;
+    G.hist.push({q,ch,ok});
+    if(G.mode==='match'){const p=app.querySelectorAll('.pts');p[0].textContent=G.me;p[1].textContent=G.op}
+    fb.innerHTML=`<div class="fb ${ok?'ok':'no'}"><div class="head">${ok?pick(CHEER):pick(OOPS)}</div>
+      ${ok?'':`<div>正確答案：<b class="m">${esc(q.a)}</b></div>`}${sayB}
+      <div class="ex">${esc(q.ex)}</div>
+      ${ok?`<button class="btn pri" id="nx" style="align-self:flex-start">${over()?'看結果':'下一題'}</button>`
+        :`${coach(q)}<div class="row"><button class="btn cork" id="rem">打補救球</button><button class="btn ghost" id="nx">${over()?'看結果':'跳過，下一題'}</button></div>`}</div>`;
+  }
+  document.getElementById('nx').onclick=next;
+  const rb=document.getElementById('rem');if(rb)rb.onclick=remedial;
+  fb.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function result(){
+  const h=G.hist,wrong=h.filter(x=>!x.ok),per=UNITS.map((u,i)=>{const a=h.filter(x=>x.q.u===i);return[a.length,a.filter(x=>x.ok).length]});
+  let title,sub;
+  if(G.mode==='match'){const win=G.me>G.op;ST.games++;if(win)ST.wins++;saveST();
+    title=win?'贏了！拿下這一局 🏸':'這局輸了，再戰一場！';sub=win?'錯題魔王被你打敗了。':'看完下面的錯題，下一場一定拿回來。'}
+  else{title=G.me>=9?'太強了！這單元很穩':G.me>=7?'不錯！再練一輪會更穩':'這單元要多練幾輪';sub=`${UNITS[G.u].code} ${UNITS[G.u].name}`}
+  const weak=per.map((p,i)=>[i,p[0]?p[1]/p[0]:1]).filter(x=>per[x[0]][0]).sort((a,b)=>a[1]-b[1])[0];
+  app.innerHTML=`
+  <section class="card" style="align-items:flex-start">
+    <span class="label">${G.mode==='match'?'比賽結束':'特訓結束'}</span>
+    <div class="big">${title}</div>
+    <div class="final">${G.mode==='match'?`${G.me} : ${G.op}`:`${G.me} / 10`}</div>
+    <div class="small">${esc(sub)}</div>
+    ${G.fixed?`<div class="small">補救球答對 ${G.fixed} 次，觀念有補起來 👍</div>`:''}
+    ${G.mode==='match'?`<div class="ut" style="width:100%">${UNITS.map((u,i)=>per[i][0]?`<div><span>${u.code} ${u.name}</span><b>${per[i][1]} / ${per[i][0]}</b></div>`:'').join('')}</div>`:''}
+    <div class="row">
+      <button class="btn pri" id="again">${G.mode==='match'?'再打一場':'再練 10 題'}</button>
+      ${G.mode==='match'&&weak&&weak[1]<1?`<button class="btn cork" id="weak">特訓最弱的 ${UNITS[weak[0]].code}</button>`:''}
+      <button class="btn ghost" id="back">回首頁</button>
+    </div>
+  </section>
+  ${wrong.length?`<section class="card"><h2>這次的錯題（${wrong.length} 題）</h2>
+    <div class="small">建議抄進讀書系統的錯題本，原因寫「觀念不懂」或「粗心」。</div>
+    <ul class="wl">${wrong.map(x=>`<li><span class="qunit">${UNITS[x.q.u].code} ${UNITS[x.q.u].name}</span><div>${x.q.q}</div>
+      <div class="small">你選：<span class="m">${esc(x.ch)}</span>　正確：<b class="m">${esc(x.q.a)}</b></div><div class="ex">${esc(x.q.ex)}</div></li>`).join('')}</ul></section>`
+    :`<section class="card"><h2>全對！</h2><div class="small">這次沒有錯題，保持這個手感。</div></section>`}`;
+  const mode=G.mode,u=G.u;
+  document.getElementById('again').onclick=()=>start(mode,u);
+  document.getElementById('back').onclick=home;
+  const w=document.getElementById('weak');if(w)w.onclick=()=>start('unit',weak[0]);
+  window.scrollTo(0,0);
+}
+
+/* ---------- 重點卡 ---------- */
+function cards(){
+  let deck=shuffle(CARDS.map((c,i)=>i)),known=0,flipped=false;
+  function draw(){
+    if(!deck.length){app.innerHTML=`<section class="card" style="align-items:flex-start"><span class="label">重點卡</span><div class="big">全部記住了！</div>
+      <div class="small">${CARDS.length} 張卡都過關。去打一場比賽，試試看有沒有真的記住。</div>
+      <div class="row"><button class="btn pri" id="toMatch">去比賽</button><button class="btn ghost" id="back">回首頁</button></div></section>`;
+      document.getElementById('toMatch').onclick=()=>start('match');document.getElementById('back').onclick=home;return}
+    const c=CARDS[deck[0]];flipped=false;
+    app.innerHTML=`
+    <div class="prog"><button class="btn ghost" id="quit">← 離開</button><span class="small">已記住 ${known} / ${CARDS.length}</span></div>
+    <div class="flash"><button class="fc" id="fc" aria-label="翻面">
+      <div class="face front"><span class="qunit">${c[0]}</span><div class="t">${esc(c[1])}</div><div class="hint">先在心裡想答案，再點一下翻面</div></div>
+      <div class="face back"><span class="qunit">${c[0]}</span><div class="a">${esc(c[2])}</div></div>
+    </button></div>
+    <div class="row" id="judge" style="visibility:hidden">
+      <button class="btn ghost" id="again">還不熟，等一下再考我</button>
+      <button class="btn pri" id="got">記住了</button>
+    </div>`;
+    document.getElementById('quit').onclick=home;
+    document.getElementById('fc').onclick=()=>{flipped=!flipped;document.getElementById('fc').classList.toggle('flip',flipped);document.getElementById('judge').style.visibility='visible'};
+    document.getElementById('got').onclick=()=>{deck.shift();known++;draw()};
+    document.getElementById('again').onclick=()=>{const x=deck.shift();deck.splice(Math.min(3,deck.length),0,x);draw()};
+  }
+  draw();window.scrollTo(0,0);
+}
+
+home();
+})();
+</script>
+</body>
+</html>

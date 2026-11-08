@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d6b4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>楷宸英文闖關</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: 單欄手機優先；首頁 → 比賽/練習（記分板＋題目卡）→ 結算；重點卡獨立一頁。與讀書系統同一套球場綠＋羽毛球軟木橘 */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --ink:#18241f; --muted:#5d6b64; --line:#d9e0db;
+  --court:#1d6b4f; --court-soft:#e3efe9; --cork:#c77a12; --cork-soft:#fbeed8; --bad:#b4432f; --bad-soft:#f8e3de;
+  --f-display:"LXGW WenKai TC","Noto Sans TC",serif; --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif; --f-num:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101714; --surface:#18221d; --ink:#e7eee9; --muted:#9aaba2; --line:#2b3a33;
+  --court:#5cc49b; --court-soft:#1d3329; --cork:#f0a940; --cork-soft:#3a2b14; --bad:#ef8a74; --bad-soft:#3b211c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101714; --surface:#18221d; --ink:#e7eee9; --muted:#9aaba2; --line:#2b3a33;
+  --court:#5cc49b; --court-soft:#1d3329; --cork:#f0a940; --cork-soft:#3a2b14; --bad:#ef8a74; --bad-soft:#3b211c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:30px}
+h2{font-size:20px}
+.label{font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.small{font-size:13px;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--court);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:16px}
+.btn.pri{background:var(--court);color:var(--surface)}
+.btn.cork{background:var(--cork);color:#fff}
+.btn.ghost{background:transparent;border:1px solid var(--line);font-weight:500;font-size:14px;padding:8px 12px}
+
+/* home */
+.match{background:var(--court);color:var(--surface);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.match::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(90deg,transparent calc(50% - 1px),rgba(255,255,255,.25) calc(50% - 1px),rgba(255,255,255,.25) calc(50% + 1px),transparent calc(50% + 1px)),
+  linear-gradient(transparent 30%,rgba(255,255,255,.18) 30%,rgba(255,255,255,.18) calc(30% + 2px),transparent calc(30% + 2px));pointer-events:none}
+.match h2{font-size:22px}
+.match .btn{background:var(--surface);color:var(--court);align-self:flex-start;position:relative;z-index:1}
+.match p{margin:0;font-size:14px;opacity:.92}
+.units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:440px){.units{grid-template-columns:1fr}}
+.unit{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0}
+.unit .code{font-family:var(--f-num);font-weight:700;color:var(--court)}
+.unit .nm{font-weight:700;font-size:15px}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--court)}
+.unit .st{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* play */
+.board{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;background:var(--court);color:var(--surface);border-radius:14px;padding:10px 14px}
+.side{display:flex;flex-direction:column;align-items:center;gap:0}
+.side .who{font-size:13px;opacity:.9}
+.side .pts{font-family:var(--f-num);font-size:40px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.vs{font-family:var(--f-num);opacity:.7}
+.prog{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.qunit{font-size:12px;font-weight:700;color:var(--cork);letter-spacing:.04em}
+.q{font-size:20px;font-weight:500;line-height:1.7;font-family:var(--f-body)}
+.q .m,.opt,.ex .m{font-family:var(--f-num)}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;font-family:var(--f-num)}
+.frac span:first-child{border-bottom:2px solid currentColor;padding:0 4px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:420px){.opts{grid-template-columns:1fr}}
+.opt{border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:14px 10px;font-size:18px;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.opt:hover:not(:disabled){border-color:var(--court)}
+.opt.right{border-color:var(--court);background:var(--court-soft);color:var(--court)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.fb.ok{background:var(--court-soft)}
+.fb.no{background:var(--bad-soft)}
+.fb .head{font-weight:700;font-family:var(--f-display);font-size:18px}
+.fb.ok .head{color:var(--court)} .fb.no .head{color:var(--bad)}
+.ex{white-space:pre-wrap;font-size:14.5px}
+
+/* result */
+.big{font-family:var(--f-display);font-size:26px;font-weight:700}
+.final{font-family:var(--f-num);font-size:48px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--court)}
+.wl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.wl li{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.ut{display:flex;flex-direction:column;gap:6px}
+.ut div{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:14px}
+.ut b{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+
+/* flashcards */
+.flash{perspective:1000px;min-height:220px}
+.fc{position:relative;width:100%;min-height:220px;border:0;padding:0;background:none;transform-style:preserve-3d;transition:transform .45s}
+.fc.flip{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:16px;padding:22px;display:flex;flex-direction:column;justify-content:center;gap:10px;backface-visibility:hidden;border:1px solid var(--line);text-align:left}
+.front{background:var(--surface)}
+.back{background:var(--court-soft);transform:rotateY(180deg)}
+.face .t{font-family:var(--f-display);font-size:22px;font-weight:700}
+.face .a{font-size:17px;white-space:pre-line;font-family:var(--f-body)}
+.face .hint{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.fc{transition:none}}
+</style>
+<style>
+.subj{display:inline-block;font-size:11.5px;font-weight:700;border-radius:6px;padding:0 7px;margin-right:4px}
+.s-geo{background:var(--court-soft);color:var(--court)}
+.s-his{background:var(--cork-soft);color:var(--cork)}
+.s-civ{background:var(--bad-soft);color:var(--bad)}
+.q{font-size:19px}
+.opt{font-size:16px;font-weight:500;font-family:var(--f-body);text-align:left;padding:12px 14px}
+.opts{grid-template-columns:1fr}
+.order{display:flex;flex-direction:column;gap:8px}
+.ev{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;text-align:left;font-size:16px}
+.ev .no{width:28px;height:28px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--f-num);font-weight:700}
+.ev.picked .no{background:var(--cork);border:0;color:#fff}
+.ev.right{border-color:var(--court);background:var(--court-soft)}
+.ev.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.ev .yr{font-family:var(--f-num);font-weight:700;color:var(--muted)}
+.ev:disabled{cursor:default}
+.flash,.fc{min-height:270px}
+</style>
+<style>
+.q{font-family:var(--f-body)}
+.q .en,.opt,.ex{font-family:"Noto Sans TC",ui-sans-serif,system-ui,sans-serif}
+.q .en{font-size:20px;line-height:1.7;display:block}
+.q .hint{font-size:14px;color:var(--muted);display:block;margin-top:4px}
+.opts{grid-template-columns:repeat(2,minmax(0,1fr))}
+.opts.long{grid-template-columns:1fr}
+.opt{font-size:17px;font-weight:500;text-align:center}
+.opts.long .opt{text-align:left}
+.spkrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spk{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:15px;display:inline-flex;gap:6px;align-items:center}
+.spk:hover{border-color:var(--court)}
+.say-text{font-size:15px;font-weight:500}
+.coach{border:2px dashed var(--cork);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.coach .ch{font-weight:700;font-family:var(--f-display);font-size:17px;color:var(--cork)}
+.coach .cc{display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--cork);padding-left:10px}
+.rembadge{color:var(--cork);font-weight:700}
+
+</style>
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+const app=document.getElementById('app');
+const UNITS=[
+  {code:'L3',name:'All Animals Were Going to the Party',sub:'過去進行式＋when / before / after'},
+  {code:'L4',name:'I Want to Take a Working Holiday',sub:'to V 和 V-ing'},
+  {code:'拼字',name:'V-ing 拼字挑戰',sub:'running、making、lying 怎麼拼'},
+  {code:'L3 字尾',name:'運用字尾學字彙',sub:'-er / -or / -ful / -less / -ly / -ness'},
+];
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[R(0,a.length-1)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function opts(a,ds,fb){const s=[a];for(const d of ds){if(d!=null&&!s.includes(d))s.push(d);if(s.length===4)break}
+  let g=0;while(s.length<4&&g++<80){const d=fb();if(!s.includes(d))s.push(d)}return shuffle(s)}
+const B='<b style="letter-spacing:.1em">____</b>';
+const en=(t,h)=>`<span class="en">${t}</span>${h?`<span class="hint">${h}</span>`:''}`;
+
+/* ---------- 動詞資料 ---------- */
+const V={ // 原形: [V-ing, 過去式, 第三人稱單數]
+ play:['playing','played','plays'],watch:['watching','watched','watches'],do:['doing','did','does'],read:['reading','read','reads'],
+ cook:['cooking','cooked','cooks'],take:['taking','took','takes'],run:['running','ran','runs'],swim:['swimming','swam','swims'],
+ sing:['singing','sang','sings'],dance:['dancing','danced','dances'],write:['writing','wrote','writes'],make:['making','made','makes'],
+ ride:['riding','rode','rides'],shop:['shopping','shopped','shops'],sleep:['sleeping','slept','sleeps'],travel:['traveling','traveled','travels'],
+ learn:['learning','learned','learns'],work:['working','worked','works'],save:['saving','saved','saves'],visit:['visiting','visited','visits'],
+ win:['winning','won','wins'],try:['trying','tried','tries'],speak:['speaking','spoke','speaks'],eat:['eating','ate','eats'],
+ practice:['practicing','practiced','practices'],clean:['cleaning','cleaned','cleans'],catch:['catching','caught','catches'],
+ study:['studying','studied','studies'],go:['going','went','goes'],
+};
+const ing=b=>V[b][0],past=b=>V[b][1],s3=b=>V[b][2];
+const split=a=>{const i=a.indexOf(' ');return i<0?[a,'']:[a.slice(0,i),a.slice(i+1)]};
+const sp=r=>r?' '+r:'';
+
+/* ---------- L3 過去進行式 ---------- */
+const SUBJ=[['I','was','I'],['He','was','He'],['She','was','She'],['Kaichen','was','She'],['My mom','was','She'],['We','were','We'],['They','were','They'],['You','were','You'],['The animals','were','They']];
+const low=s=>(s==='I'||s==='Kaichen')?s:s[0].toLowerCase()+s.slice(1);
+const ACT=['play badminton','watch TV','do homework','read a comic book','cook dinner','take a shower','run in the park','swim in the pool','sing songs','dance at the party','write a letter','make a cake','ride a bike','shop at the mall','sleep'];
+const TIME=['at eight last night','at this time yesterday','at 3 p.m. yesterday','when Dad came home','when the phone rang'];
+const SEQ=[[['ate breakfast','吃早餐'],['went to school','去上學']],[['did my homework','寫功課'],['watched TV','看電視']],[['brushed my teeth','刷牙'],['went to bed','上床睡覺']],
+  [['finished dinner','吃完晚餐'],['took a shower','洗澡']],[['practiced badminton','練羽球'],['went home','回家']],[['bought a ticket','買票'],['got on the train','上火車']],[['washed my hands','洗手'],['ate lunch','吃午餐']]];
+const L3=[
+ ()=>{const[S,be]=pick(SUBJ),[v,r]=split(pick(ACT)),t=pick(TIME);
+   return{q:en(`${S} ${B} ${ing(v)}${sp(r)} ${t}.`),a:be,o:shuffle(['was','were','is','are']),
+     ex:`主詞是 ${S} → 用 ${be}\nwas：I、he、she、it、單數名詞\nwere：you、we、they、複數名詞\n「${t}」是過去的時間 → 過去進行式 was / were + V-ing`}},
+ ()=>{const[S,be]=pick(SUBJ),[v,r]=split(pick(ACT)),t=pick(TIME);
+   return{q:en(`${S} ${be} ${B}${sp(r)} ${t}.`,`（${v}）`),a:ing(v),o:opts(ing(v),[v,past(v),s3(v)],()=>pick([v+'ed','to '+v,'is '+ing(v)])),
+     ex:`was / were 後面要接 V-ing\n→ ${S} ${be} ${ing(v)}${sp(r)} ${t}.`}},
+ ()=>{const[S,be]=pick(SUBJ),[v,r]=split(pick(ACT)),e=pick([['Dad came home','came'],['the phone rang','rang'],['I saw her','saw'],['it started to rain','started']]);
+   return{q:en(`${B} ${e[0]}, ${low(S)} ${be} ${ing(v)}${sp(r)}.`),a:'When',o:shuffle(['When','During','Because of','In']),
+     ex:`後面接的是一個句子（${e[0]}），要用連接詞 when。\nduring、because of、in 是介系詞，後面只能接名詞。\nwhen 後面常接「短動作」的過去式（${e[1]}）。`}},
+ ()=>{const[e1,e2]=pick(SEQ),k=R(0,3);
+   const f=['I '+e1[0],'I '+e2[0]],z=`（先${e1[1]}，再${e2[1]}）`;
+   const T=[[`${f[0]} ${B} ${f[1]}.`,'before'],[`${f[1]} ${B} ${f[0]}.`,'after'],[`${B} ${f[0]}, ${f[1]}.`,'After'],[`${B} ${f[1]}, ${f[0]}.`,'Before']][k];
+   const lowA=T[1].toLowerCase(),opt=T[1]===lowA?['before','after','when','during']:['Before','After','When','During'];
+   return{q:en(T[0],z),a:T[1],o:shuffle(opt),
+     ex:`${z.slice(1,-1)}
+before ＋「後發生的事」：在…之前
+after ＋「先發生的事」：在…之後
+${T[1]} 後面接的是「${lowA==='before'?e2[1]:e1[1]}」→ 選 ${T[1]}`}},
+ ()=>{const[S,be]=pick(SUBJ.filter(x=>x[0]!=='I')),qs=S==='You'?'you':S==='My mom'?'your mom':low(S),[v,r]=split(pick(ACT)),t=pick(TIME.slice(0,3));
+   const ans=S==='You'?'Were':be[0].toUpperCase()+be.slice(1);
+   return{q:en(`${B} ${qs} ${ing(v)}${sp(r)} ${t}?`),a:ans,o:shuffle(['Was','Were','Did','Do']),
+     ex:`過去進行式的問句：把 was / were 移到句子最前面。\n${qs} → ${ans}\n注意：有 V-ing 就不用 Did！`}},
+ ()=>{const c=pick([['Were you','Yes, I',`was`],['Were they','Yes, they','were'],['Was Kaichen','No, she',"wasn't"],['Were your parents','No, they',"weren't"],['Was your brother','Yes, he','was']]),[v,r]=split(pick(ACT)),t=pick(TIME.slice(0,3));
+   return{q:en(`${c[0]} ${ing(v)}${sp(r)} ${t}?<br>— ${c[1]} ${B}.`),a:c[2],o:shuffle(c[2].includes("n't")?["wasn't","weren't","didn't","isn't"]:['was','were','did','am']),
+     ex:`用什麼問，就用什麼答。\n問句用 ${c[0].split(' ')[0]} → 回答主詞 ${c[1].split(' ')[1]} 用 ${c[2]}。`}},
+ ()=>{const[S,be,P]=pick(SUBJ),acts=shuffle(ACT).slice(0,2),[v1,r1]=split(acts[0]),[v2,r2]=split(acts[1]),t=pick(TIME.slice(0,3));
+   return{q:en(`${S} ${B} ${ing(v1)}${sp(r1)} ${t}. ${P} ${be} ${ing(v2)}${sp(r2)}.`),a:be+"n't",o:shuffle(["wasn't","weren't","didn't","isn't"]),
+     ex:`過去進行式的否定：was / were + not\n${S} → ${be}n't\n有 V-ing 就不用 didn't。`}},
+ ()=>{const[S,be]=pick(SUBJ),[v,r]=split(pick(ACT)),k=R(0,2);
+   const pres=S==='I'?'am':be==='was'?'is':'are',isS=!['I','We','They','You','The animals'].includes(S);
+   const P=`${pres} ${ing(v)}`,PP=`${be} ${ing(v)}`,SP=isS?s3(v):v,SPa=past(v);
+   const cue=[['Look!','now',P,'看到 Look! 或 now → 現在進行式 am / is / are + V-ing'],['','at eight last night',PP,'過去某個時間點正在做 → 過去進行式 was / were + V-ing'],['','every day',SP,'every day 是習慣 → 現在簡單式'+(isS?'，主詞第三人稱單數，動詞加 s':'')]][k];
+   return{q:en(`${cue[0]?cue[0]+' ':''}${S} ${B}${sp(r)} ${cue[1]}.`),a:cue[2],o:opts(cue[2],shuffle([P,PP,SP,SPa]),()=>`${be==='was'?'were':'was'} ${ing(v)}`),
+     ex:`時間線索「${cue[0]||cue[1]}」\n${cue[3]}`}},
+];
+
+/* ---------- L4 to V / V-ing ---------- */
+const S4=[['I',0],['We',0],['They',0],['He',1],['She',1],['Kaichen',1],['My brother',1]];
+const TOV=[['want','wants',['take a working holiday','travel around the world','learn English','work on a farm']],['hope','hopes',['travel around the world','visit Japan','win the game']],
+  ['plan','plans',['take a working holiday','save money','visit Japan']],['decide','decides',['learn English','work on a farm','study abroad']],['would like','would like',['visit Japan','try the noodles']]];
+const ING=[['enjoy','enjoys',['play badminton','travel around the world','cook dinner','read comic books','swim in the sea']],['finish','finishes',['do homework','cook dinner','clean the room']],
+  ['practice','practices',['play badminton','speak English','swim']],['keep','keeps',['learn English','save money']],['quit','quits',['eat junk food','play video games']]];
+const vf=(p,third)=>third?p[1]:p[0];
+V.study=V.study;
+function phrase(a,form){const[v,r]=split(a);const w=form==='to'?'to '+v:form==='ing'?ing(v):form==='base'?v:form==='past'?past(v):s3(v);return w+sp(r)}
+const L4=[
+ ()=>{const[S,t]=pick(S4),useTo=Math.random()<.55,p=pick(useTo?TOV:ING),a=pick(p[2]),[v,r]=split(a);
+   const ans=useTo?'to '+v:ing(v);
+   return{q:en(`${S} ${vf(p,t)} ${B}${sp(r)}.`,`（${v}）`),a:ans,o:opts(ans,['to '+v,ing(v),s3(v),past(v)],()=>v),
+     ex:useTo?`${p[0]} 後面接 to V\n想要、希望、計畫、決定：want、hope、plan、decide、would like`:`${p[0]} 後面接 V-ing\n口訣：享受、完成、練習、持續、戒掉 → enjoy、finish、practice、keep、quit`}},
+ ()=>{const[S,t]=pick(S4),pt=pick(TOV),pi=pick(ING.filter(x=>x[0]!=='quit')),at=pick(pt[2]),ai=pick(pi[2]);
+   const goodTo=`${S} ${vf(pt,t)} ${phrase(at,'to')}.`,goodIng=`${S} ${vf(pi,t)} ${phrase(ai,'ing')}.`;
+   const badTo=`${S} ${vf(pt,t)} ${phrase(at,'ing')}.`,badIng=`${S} ${vf(pi,t)} ${phrase(ai,'to')}.`;
+   const badAgr=t?`${S} ${pi[0]} ${phrase(ai,'ing')}.`:`${S} ${pi[1]} ${phrase(ai,'ing')}.`;
+   const which=Math.random()<.5,ans=which?goodTo:goodIng;
+   return{q:'下列哪一句的文法正確？',long:1,a:ans,o:opts(ans,[badTo,badIng,badAgr,which?null:null],()=>`${S} ${vf(pt,t)} ${phrase(at,'base')}.`),
+     ex:`${pt[0]} + to V → ${goodTo}\n${pi[0]} + V-ing → ${goodIng}\n${t?`主詞 ${S} 是第三人稱單數，動詞要加 s。`:''}`}},
+ ()=>{const o=pick(['me','him','her','us']),w=pick([['My mom','wants'],['My teacher','wants'],['Dad','would like'],['The coach','wants']]),a=pick(['clean my room','practice every day','study hard','eat more vegetables','go to bed early']),[v,r]=split(a);
+   const rr=o==='me'?r:r.replace('my ',o==='us'?'our ':o==='him'?'his ':'her ');
+   return{q:en(`${w[0]} ${w[1]} ${o} ${B}${sp(rr)}.`,`（${v}）`),a:'to '+v,o:opts('to '+v,[v,ing(v),s3(v)],()=>past(v)),
+     ex:`want / would like + 人 + to V\n「要某人去做某事」\n人要用受格：me、him、her、us、them`}},
+ ()=>{const c=pick([['Kaichen went to the gym','practice','badminton'],['I save money','take','a working holiday'],['They went to Australia','work','on a farm'],['He got up early','catch','the first bus'],['We went to the library','read','books']]);
+   return{q:en(`${c[0]} ${B} ${c[2]}.`,`（${c[1]}）`),a:'to '+c[1],o:opts('to '+c[1],[ing(c[1]),past(c[1]),s3(c[1])],()=>c[1]),
+     ex:`to V 可以表示「為了…」（目的）\n${c[0]} to ${c[1]} ${c[2]}.\n＝為了 ${c[1]} ${c[2]}`}},
+ ()=>{const useTo=Math.random()<.5,S=pick(['I','We','They']);
+   if(useTo){const p=pick(TOV.filter(x=>x[0]!=='would like')),a=pick(p[2]);
+     return{q:en(`${S} ${B} ${phrase(a,'to')}.`),a:p[0],o:opts(p[0],shuffle(ING.map(x=>x[0])),()=>'enjoy'),
+       ex:`空格後面是 to V → 要選後面接 to V 的動詞：${p[0]}\nenjoy、finish、practice、keep、quit 後面都接 V-ing。`}}
+   const p=pick(ING),a=pick(p[2]);
+   return{q:en(`${S} ${B} ${phrase(a,'ing')}.`),a:p[0],o:opts(p[0],shuffle(TOV.filter(x=>x[0]!=='would like').map(x=>x[0])),()=>'want'),
+     ex:`空格後面是 V-ing → 要選後面接 V-ing 的動詞：${p[0]}\nwant、hope、plan、decide 後面都接 to V。`}},
+];
+
+/* ---------- V-ing 拼字 ---------- */
+const SPELL=[
+ ['run','running',3],['swim','swimming',3],['sit','sitting',3],['get','getting',3],['shop','shopping',3],['stop','stopping',3],['begin','beginning',3],['win','winning',3],['put','putting',3],
+ ['make','making',2],['take','taking',2],['write','writing',2],['ride','riding',2],['dance','dancing',2],['come','coming',2],['have','having',2],['live','living',2],['practice','practicing',2],
+ ['lie','lying',4],['die','dying',4],['tie','tying',4],
+ ['study','studying',1],['play','playing',1],['cook','cooking',1],['read','reading',1],['see','seeing',1],['visit','visiting',1],['listen','listening',1],['open','opening',1],['eat','eating',1],
+];
+const RULE={1:'一般動詞：直接加 ing。\n（y 結尾也直接加 ing，不用改！study → studying）',2:'字尾是不發音的 e：去掉 e 再加 ing。',3:'短母音＋一個子音結尾：重複最後一個字母，再加 ing。',4:'ie 結尾：把 ie 改成 y，再加 ing。'};
+const L5=[
+ ()=>{const[b,a,k]=pick(SPELL),last=b.slice(-1);
+   const ds=[b+'ing',b.endsWith('e')?b.slice(0,-1)+'ing':b+last+'ing',b.endsWith('ie')?b.replace(/ie$/,'ying'):null,b.endsWith('y')?b.slice(0,-1)+'ing':null,b.endsWith('e')?b+'ing':null];
+   return{q:en(`${b} → ${B}`,'這個動詞的 V-ing 怎麼拼？'),a,say:`${b}. ${a}.`,card:k<=2?'V-ing 規則 1、2':k===3?'V-ing 規則 3':'V-ing 規則 4',o:opts(a,shuffle(ds),()=>pick([a.slice(0,-3)+'in',b+'eing',a+'g'])),ex:`${b} → ${a}\n${RULE[k]}`}},
+];
+const SUF=[['teach','er','teacher','老師'],['sing','er','singer','歌手'],['play','er','player','選手'],['farm','er','farmer','農夫'],['act','or','actor','演員'],['visit','or','visitor','訪客'],['invent','or','inventor','發明家'],
+ ['help','ful','helpful','有幫助的'],['care','ful','careful','小心的'],['wonder','ful','wonderful','很棒的'],['color','ful','colorful','色彩繽紛的'],['use','ful','useful','有用的'],
+ ['care','less','careless','粗心的'],['home','less','homeless','無家可歸的'],['use','less','useless','沒有用的'],
+ ['quick','ly','quickly','快速地'],['slow','ly','slowly','慢慢地'],['happy','ly','happily','快樂地'],['careful','ly','carefully','小心地'],
+ ['kind','ness','kindness','仁慈、好心'],['happy','ness','happiness','快樂、幸福'],['sad','ness','sadness','悲傷'],['dark','ness','darkness','黑暗']];
+const SUFM={er:'做…的人',or:'做…的人',ful:'充滿…的（形容詞）',less:'沒有…的（形容詞）',ly:'…地（形容詞變副詞）',ness:'…的狀態（形容詞變名詞）'};
+const SUFS=[['Be ____! The floor is wet.','careful',['careless','carefully','care'],'Be ＋形容詞：小心的 → careful'],
+ ['She made a ____ mistake. She didn\'t read the question.','careless',['careful','carefully','useful'],'沒看清楚題目 → 粗心的 careless（care＋less）'],
+ ['Please drive ____. It\'s raining.','slowly',['slow','slowness','sadness'],'修飾動詞 drive（開車）要用副詞 → slowly（slow＋ly）'],
+ ['Thank you! Your advice is very ____.','helpful',['help','helpfully','homeless'],'very ＋形容詞：有幫助的 → helpful（help＋ful）'],
+ ['The kids played ____ in the park.','happily',['happy','happiness','unhappy'],'修飾動詞 played 要用副詞 → happily（happy 的 y 改 i＋ly）'],
+ ['My uncle is a ____. He grows rice.','farmer',['farm','farming','actor'],'種稻米的人 → farmer（farm＋er）'],
+ ['We had a ____ time at the party.','wonderful',['wonder','wonderfully','careless'],'a ＋形容詞＋名詞：很棒的 → wonderful'],
+ ['Thank you for your ____.','kindness',['kind','kindly','kinder'],'your 後面要接名詞 → kindness（kind＋ness）'],
+ ['This old phone is ____. It doesn\'t work.','useless',['useful','use','user'],'不能用了 → 沒有用的 useless（use＋less）'],
+ ['Kaichen is a good badminton ____.','player',['play','playful','playing'],'a good ＋名詞：打球的人 → player（play＋er）'],
+ ['Many ____ come to Taiwan every year.','visitors',['visits','visiting','visited'],'來台灣的人 → visitors（visit＋or，人很多所以加 s）'],
+ ['Edison was a great ____.','inventor',['invent','invention','inventing'],'發明東西的人 → inventor（invent＋or）']];
+const LW=[
+ ()=>{const[b,x,w]=pick(SUF);const ds=shuffle([b+x,x==='er'?b+'or':x==='or'?b+'er':null,x==='ful'?b+'full':null,b.endsWith('ful')&&x==='ly'?b+'y':null,w.replace(/(.)\1/,'$1'),w.slice(0,-1),w+w.slice(-1),b.endsWith('e')?b.slice(0,-1)+x:null,x==='less'?b+'les':null]).filter(d=>d&&d!==w);
+   return{q:en(`${b} + ${x} = ${B}`,'加上字尾後，正確的拼法是？'),a:w,say:w,card:SUFCARD[x],o:opts(w,ds,()=>pick([w.slice(0,-2)+w.slice(-1),w.slice(0,2)+w.slice(3),w+'e'])),
+     ex:`${b} ＋ ${x} → ${w}（${SUF.find(z=>z[2]===w)[3]}）
+${b.endsWith('y')?'y 結尾：y 改成 i 再加字尾！\n':''}${x==='ful'?'注意：字尾 -ful 只有一個 l！\n':''}-${x}：${SUFM[x]}`}},
+ ()=>{const t=pick(SUF),same=shuffle(SUF.filter(z=>z[2]!==t[2]&&(z[0]===t[0]||z[1]===t[1]))).map(z=>z[3]);
+   return{q:en(t[2],'這個字的意思是？'),a:t[3],say:t[2],card:SUFCARD[t[1]],o:opts(t[3],same,()=>pick(SUF)[3]),ex:`${t[2]} ＝ ${t[0]} ＋ ${t[1]}
+-${t[1]}：${SUFM[t[1]]}
+→ ${t[3]}`}},
+ ()=>{const x=pick(Object.keys(SUFM).filter(k=>k!=='or')),ex=SUF.filter(z=>z[1]===x).slice(0,3).map(z=>z[2]);
+   return{q:`字尾 <b>-${x}</b> 是什麼意思？<span class="hint">例如：${ex.join('、')}</span>`,a:SUFM[x],say:ex.join(', '),card:SUFCARD[x],o:opts(SUFM[x],shuffle(Object.values(SUFM)),()=>'…的地方'),long:1,
+     ex:`-${x}：${SUFM[x]}
+${SUF.filter(z=>z[1]===x).map(z=>`${z[2]}：${z[3]}`).join('\n')}`}},
+ ()=>{const[t,a,d,e]=pick(SUFS);return{q:en(t.replace('____',B)),a,o:shuffle([a,...d]),ex:e,card:SUFCARD[(SUF.find(z=>a.startsWith(z[2]))||[])[1]]}},
+];
+const GEN=[L3,L4,L5,LW];
+function deriveSay(q){if(q.say)return q.say;const m=q.q.match(/<span class="en">(.*?)<\/span>/);if(!m)return q.a;
+  return m[1].replace(/<br>/g,' ').replace(/<b[^>]*>____<\/b>/,q.a).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim()}
+const CMAP=[{0:['was 還是 were？'],1:['過去進行式的公式'],2:['when 和 during','when：當…的時候'],3:['before 和 after','before / after 放句首'],4:['問句和回答'],5:['問句和回答'],6:['過去進行式的公式','was 還是 were？'],7:['看時間詞選時態']},
+ {0:['後面接 to V 的動詞','後面接 V-ing 的動詞'],1:['後面接 to V 的動詞','後面接 V-ing 的動詞'],2:['want + 人 + to V'],3:['to V 表示「為了…」'],4:['後面接 to V 的動詞','後面接 V-ing 的動詞']},{},{}];
+const SUFCARD={er:'-er / -or：做…的人',or:'-er / -or：做…的人',ful:'-ful：充滿…的',less:'-less：沒有…的',ly:'-ly：…地（形容詞變副詞）',ness:'-ness：形容詞變名詞'};
+function cardsFor(q){const t=q.card?[q.card]:(CMAP[q.u]||{})[q.g]||[];return CARDS.filter(c=>t.includes(c[1]))}
+function makeQ(u,g){const gi=g!=null?g:R(0,GEN[u].length-1),q=GEN[u][gi]();q.u=u;q.g=gi;q.say=deriveSay(q);return q}
+
+/* ---------- 重點卡 ---------- */
+const CARDS=[
+ [0,'過去進行式的公式','S + was / were + V-ing\n表示「過去某個時間點正在做」\nI was sleeping at ten last night.'],
+ [0,'was 還是 were？','was：I、he、she、it、單數名詞\nwere：you、we、they、複數名詞'],
+ [0,'常見的時間線索','at eight last night\nat this time yesterday\nwhen + 過去式（when Dad came home）'],
+ [0,'問句和回答','Was / Were + 主詞 + V-ing …？\nYes, I was. / No, she wasn\'t.\n有 V-ing 就不用 did！'],
+ [0,'when：當…的時候','I was taking a shower when the phone rang.\n（電話響的時候，我正在洗澡）\nwhen 後面常接短動作的過去式'],
+ [0,'before 和 after','before ＋後發生的事：在…之前\nI ate breakfast before I went to school.\nafter ＋先發生的事：在…之後\nI went to school after I ate breakfast.'],
+ [0,'before / after 放句首','After I finished dinner, I took a shower.\nBefore I went to bed, I brushed my teeth.\n放句首時，中間要加逗號'],
+ [0,'when 和 during','when 後面接句子：when Dad came home\nduring 後面只能接名詞：during the summer'],
+ [0,'看時間詞選時態','Look! / now → am / is / are + V-ing\nat eight last night → was / were + V-ing\nevery day → 現在簡單式'],
+ [1,'後面接 to V 的動詞','想要、希望、計畫、決定\nwant、hope、plan、decide、would like\nI want to take a working holiday.'],
+ [1,'後面接 V-ing 的動詞','口訣：享受、完成、練習、持續、戒掉\nenjoy、finish、practice、keep、quit\nShe enjoys playing badminton.'],
+ [1,'兩種都可以','like、love、start、begin\nI like to swim. = I like swimming.'],
+ [1,'want + 人 + to V','My mom wants me to clean my room.\n人用受格：me、him、her、us、them'],
+ [1,'to V 表示「為了…」','I save money to take a working holiday.\n（為了去打工度假而存錢）'],
+ [2,'V-ing 規則 1、2','一般動詞：直接加 ing（play → playing）\n不發音的 e 結尾：去 e 加 ing（make → making）'],
+ [2,'V-ing 規則 3','短母音＋一個子音結尾：重複字尾加 ing\nrun → running、swim → swimming、sit → sitting'],
+ [2,'V-ing 規則 4','ie 結尾：ie 改 y 加 ing\nlie → lying、die → dying、tie → tying'],
+ [3,'-er / -or：做…的人','teacher、singer、player、farmer\nactor、visitor、inventor'],
+ [3,'-ful：充滿…的','helpful、careful、wonderful、colorful、useful\n注意：只有一個 l！'],
+ [3,'-less：沒有…的','careless、homeless、useless\ncareful 小心的 ↔ careless 粗心的'],
+ [3,'-ly：…地（形容詞變副詞）','quickly、slowly、carefully\nhappy → happily（y 改 i）\n用來修飾動詞：drive slowly'],
+ [3,'-ness：形容詞變名詞','kindness、sadness、darkness\nhappy → happiness（y 改 i）'],
+];
+
+let ST={u:UNITS.map(()=>[0,0]),wins:0,games:0};
+try{const v=JSON.parse(localStorage.getItem('kc-english')||'null');if(v&&v.u){while(v.u.length<UNITS.length)v.u.push([0,0]);ST={...ST,...v}}}catch(e){}
+function saveST(){try{localStorage.setItem('kc-english',JSON.stringify(ST))}catch(e){}}
+
+let G=null;
+/* ---------- 發音 ---------- */
+const synth=('speechSynthesis' in window)?window.speechSynthesis:null;let voice=null;
+function pickVoice(){try{const vs=synth.getVoices();voice=vs.find(v=>/^en-US/i.test(v.lang)&&/Samantha|Google US|Aria|Jenny|Ava/i.test(v.name))||vs.find(v=>/^en-US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}catch(e){}}
+if(synth){pickVoice();try{synth.onvoiceschanged=pickVoice}catch(e){}}
+function say(t,slow){if(!synth||!t)return;try{synth.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(voice)u.voice=voice;u.rate=slow?0.6:0.95;synth.speak(u)}catch(e){}}
+const enOnly=t=>t.split('\n').filter(l=>/[A-Za-z]{2,}/.test(l)).map(l=>l.replace(/[^\x00-\x7F’]+/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean).join('. ');
+const spk=t=>synth&&t?`<span class="spkrow"><button type="button" class="spk" data-say="${esc(t)}" aria-label="播放發音">🔊 聽</button><button type="button" class="spk" data-say="${esc(t)}" data-slow="1" aria-label="慢速播放">🐢 慢速</button></span>`:'';
+document.addEventListener('click',e=>{const b=e.target.closest('[data-say]');if(!b)return;e.stopPropagation();say(b.dataset.say,!!b.dataset.slow)},true);
+const CHEER=['Nice shot！殺球得分！','漂亮的網前小球！','Perfect！這球太乾淨了！','跳殺成功！','Great job！平抽快攻得分！'];
+const OOPS=['被對手抓到空檔…','這球掛網了…','出界了，看一下解析','被殺球了，下一球拿回來！'];
+
+function home(){
+  G=null;
+  app.innerHTML=`
+  <header style="display:flex;flex-direction:column;gap:4px">
+    <a href="./" style="color:var(--court);font-size:14px;font-weight:700;text-decoration:none">← 回讀書系統</a>
+    <span class="label">第二次段考 · 英文 · 南一版 第 3、4 課</span>
+    <h1>楷宸英文闖關</h1>
+    <div class="small">練這兩課的文法和字尾。題目每次重新組合，沒辦法背答案，只能真的會。答完按 🔊 可以聽整句發音，🐢 是慢速。</div>
+  </header>
+  <section class="match">
+    <span class="label" style="color:inherit;opacity:.85">比賽模式 · 兩課混合</span>
+    <h2>對戰「錯題魔王」</h2>
+    <p>答對你得分，答錯對手得分。先拿到 11 分獲勝，10 比 10 之後要領先 2 分（最多打到 15 分）。</p>
+    <button class="btn" id="startMatch">開打</button>
+    <div style="font-size:13px;opacity:.9;position:relative;z-index:1">戰績：${ST.wins} 勝 / ${ST.games} 場</div>
+  </section>
+  <section class="card">
+    <h2>單課複習</h2>
+    <div class="units">${UNITS.map((u,i)=>{const[t,c]=ST.u[i],pct=t?Math.round(c/t*100):0;
+      return`<button class="unit" data-unit="${i}"><span class="code">${u.code}</span><span class="nm">${u.sub}</span>
+        <span class="meter"><i style="width:${pct}%"></i></span><span class="st">${t?`答對率 ${pct}%（${c}/${t}）`:'還沒練過'}</span></button>`}).join('')}</div>
+    <div class="small">點一課：重點整理、重點卡、測驗都在裡面。</div>
+  </section>
+  <section class="card">
+    <h2>全部重點卡</h2>
+    <div class="small">${CARDS.length} 張文法和字尾卡，翻面後可以按 🔊 聽例句。點卡片翻面，不熟的會再出現。</div>
+    <button class="btn cork" id="startCards" style="align-self:flex-start">開始翻卡</button>
+  </section>`;
+  document.getElementById('startMatch').onclick=()=>start('match');
+  document.getElementById('startCards').onclick=()=>cards();
+  app.querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>hub(+b.dataset.unit));
+  window.scrollTo(0,0);
+}
+function hub(u){
+  G=null;const U=UNITS[u],cs=CARDS.filter(c=>c[0]===u),[t,c]=ST.u[u];
+  app.innerHTML=`
+  <div class="prog"><button class="btn ghost" id="quit">← 回首頁</button><span class="small">${t?`答對率 ${Math.round(c/t*100)}%`:'還沒練過'}</span></div>
+  <header style="display:flex;flex-direction:column;gap:4px">
+    <span class="label">${U.code} · ${esc(U.name)}</span>
+    <h1 style="font-size:26px">${U.sub}</h1>
+    <div class="small">建議順序：① 讀重點 → ② 翻卡自我檢查 → ③ 測驗。</div>
+  </header>
+  <section class="card">
+    <h2>① 重點整理</h2>
+    <ol class="wl" style="list-style:none">${cs.map(x=>`<li><b>${esc(x[1])}</b><div class="ex">${esc(x[2])}</div>${spk(enOnly(x[2]))}</li>`).join('')}</ol>
+  </section>
+  <section class="card">
+    <h2>② 重點卡（${cs.length} 張）</h2>
+    <div class="small">先在心裡說出答案再翻面，不熟的會再出現。</div>
+    <button class="btn cork" id="hc" style="align-self:flex-start">開始翻卡</button>
+  </section>
+  <section class="card">
+    <h2>③ 測驗</h2>
+    <div class="small">題目每次重新組合，可以一直練。</div>
+    <div class="row"><button class="btn pri" id="h10">10 題</button><button class="btn ghost" id="h20">20 題</button></div>
+  </section>`;
+  document.getElementById('quit').onclick=home;
+  document.getElementById('hc').onclick=()=>cards(u);
+  document.getElementById('h10').onclick=()=>start('unit',u,10);
+  document.getElementById('h20').onclick=()=>start('unit',u,20);
+  window.scrollTo(0,0);
+}
+function start(mode,u,len){G={mode,u,len:len||10,me:0,op:0,n:0,hist:[],last:''};next()}
+function over(){if(G.mode==='unit')return G.n>=G.len;const a=G.me,b=G.op;return a===15||b===15||((a>=11||b>=11)&&Math.abs(a-b)>=2)}
+function next(){
+  if(over())return result();
+  const u=G.mode==='match'?pick([0,0,0,1,1,1,2,3,3]):G.u;
+  let q,g=0;do{q=makeQ(u)}while(q.q===G.last&&g++<10);G.last=q.q;
+  G.q=q;G.n++;G.done=false;G.tries=0;renderQ();
+}
+function renderQ(){
+  const q=G.q,U=UNITS[q.u],long=q.long||q.o.some(o=>o.length>14);
+  app.innerHTML=`
+  <div class="prog"><button class="btn ghost" id="quit">← 離開</button>
+    <span class="small">${q.rem?'<span class="rembadge">補救球 · 同類型再試一次（不算分）</span>':G.mode==='unit'?`第 ${G.n} / ${G.len} 題 · 答對 ${G.me}`:`第 ${G.n} 球`}</span></div>
+  ${G.mode==='match'?`<div class="board" aria-label="比分"><div class="side"><span class="who">楷宸</span><span class="pts">${G.me}</span></div><span class="vs">:</span><div class="side"><span class="who">錯題魔王</span><span class="pts">${G.op}</span></div></div>`:''}
+  <section class="qcard">
+    <span class="qunit">${U.code} ${U.sub}</span>
+    <div class="q">${q.q}</div>
+    ${q.u===3&&q.o.length&&/[a-z]/.test(q.a)&&q.q.includes('意思')?spk(q.say):''}
+    <div class="opts${long?' long':''}">${q.o.map((o,i)=>`<button class="opt" data-o="${i}">${esc(o)}</button>`).join('')}</div>
+    <div id="fb"></div>
+  </section>`;
+  document.getElementById('quit').onclick=G.mode==='unit'?()=>hub(G.u):home;
+  app.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>answer(+b.dataset.o));
+}
+function coach(q){const cs=cardsFor(q);return `<div class="coach"><div class="ch">🧑‍🏫 教練暫停：先把觀念弄懂</div>${cs.map(c=>`<div class="cc"><b>${esc(c[1])}</b><div class="ex">${esc(c[2])}</div>${spk(enOnly(c[2]))}</div>`).join('')}<div class="small">看懂了嗎？接著打一球「同類型」的補救球（不算分）。答對了，才代表這個觀念真的補起來。</div></div>`}
+function remedial(){const b=G.q;G.tries=(G.tries||0)+1;let q,g=0;do{q=makeQ(b.u,b.g)}while(q.q===b.q&&g++<10);q.rem=true;G.q=q;G.done=false;renderQ();window.scrollTo(0,0)}
+function answer(i){
+  if(G.done)return;G.done=true;
+  const q=G.q,ch=q.o[i],ok=ch===q.a;
+  app.querySelectorAll('[data-o]').forEach((b,j)=>{b.disabled=true;if(q.o[j]===q.a)b.classList.add('right');else if(j===i)b.classList.add('wrong')});
+  const fb=document.getElementById('fb'),sayB=synth?`<div class="say-text">${esc(q.say)}</div>${spk(q.say)}`:'';
+  if(q.rem){
+    if(ok)G.fixed=(G.fixed||0)+1;
+    const more=!ok&&G.tries<3;
+    fb.innerHTML=`<div class="fb ${ok?'ok':'no'}"><div class="head">${ok?'觀念補起來了！✅':'還差一點，再看一次解析'}</div>
+      ${ok?'':`<div>正確答案：<b>${esc(q.a)}</b></div>`}${sayB}<div class="ex">${esc(q.ex)}</div>
+      <div class="row">${more?'<button class="btn cork" id="rem">再一球同類型</button>':''}<button class="btn pri" id="nx">${over()?'看結果':(G.mode==='match'?'回到比賽，下一球':'下一題')}</button></div></div>`;
+  }else{
+    ST.u[q.u][0]++;if(ok)ST.u[q.u][1]++;saveST();
+    if(ok)G.me++;else G.op++;
+    G.hist.push({q,ch,ok});
+    if(G.mode==='match'){const p=app.querySelectorAll('.pts');p[0].textContent=G.me;p[1].textContent=G.op}
+    fb.innerHTML=`<div class="fb ${ok?'ok':'no'}"><div class="head">${ok?pick(CHEER):pick(OOPS)}</div>
+      ${ok?'':`<div>正確答案：<b>${esc(q.a)}</b></div>`}${sayB}
+      <div class="ex">${esc(q.ex)}</div>
+      ${ok?`<button class="btn pri" id="nx" style="align-self:flex-start">${over()?'看結果':'下一題'}</button>`
+        :`${coach(q)}<div class="row"><button class="btn cork" id="rem">打補救球</button><button class="btn ghost" id="nx">${over()?'看結果':'跳過，下一題'}</button></div>`}</div>`;
+  }
+  document.getElementById('nx').onclick=next;
+  const rb=document.getElementById('rem');if(rb)rb.onclick=remedial;
+  fb.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function result(){
+  const h=G.hist,wrong=h.filter(x=>!x.ok),per=UNITS.map((u,i)=>{const a=h.filter(x=>x.q.u===i);return[a.length,a.filter(x=>x.ok).length]});
+  let title,sub;
+  if(G.mode==='match'){const win=G.me>G.op;ST.games++;if(win)ST.wins++;saveST();
+    title=win?'贏了！拿下這一局 🏸':'這局輸了，再戰一場！';sub=win?'錯題魔王被你打敗了。':'看完下面的錯題，下一場一定拿回來。'}
+  else{const r=G.me/G.len;title=r>=.9?'太強了！這課很穩':r>=.7?'不錯！再練一輪會更穩':'先回去看重點整理，再考一次';sub=`${UNITS[G.u].code} ${UNITS[G.u].sub}`}
+  const weak=per.map((p,i)=>[i,p[0]?p[1]/p[0]:1]).filter(x=>per[x[0]][0]).sort((a,b)=>a[1]-b[1])[0];
+  app.innerHTML=`
+  <section class="card" style="align-items:flex-start">
+    <span class="label">${G.mode==='match'?'比賽結束':'測驗結束'}</span>
+    <div class="big">${title}</div>
+    <div class="final">${G.mode==='match'?`${G.me} : ${G.op}`:`${G.me} / ${G.len}`}</div>
+    <div class="small">${esc(sub)}</div>
+    ${G.fixed?`<div class="small">補救球答對 ${G.fixed} 次，觀念有補起來 👍</div>`:''}
+    ${G.mode==='match'?`<div class="ut" style="width:100%">${UNITS.map((u,i)=>per[i][0]?`<div><span>${u.code} ${u.sub}</span><b>${per[i][1]} / ${per[i][0]}</b></div>`:'').join('')}</div>`:''}
+    <div class="row">
+      <button class="btn pri" id="again">${G.mode==='match'?'再打一場':'再考一次'}</button>
+      ${G.mode==='unit'?'<button class="btn cork" id="toHub">回這課的重點</button>':''}
+      ${G.mode==='match'&&weak&&weak[1]<1?`<button class="btn cork" id="weak">特訓最弱的 ${UNITS[weak[0]].code}</button>`:''}
+      <button class="btn ghost" id="back">回首頁</button>
+    </div>
+  </section>
+  ${wrong.length?`<section class="card"><h2>這次的錯題（${wrong.length} 題）</h2>
+    <div class="small">建議抄進讀書系統的錯題本，寫下錯的原因。</div>
+    <ul class="wl">${wrong.map(x=>`<li><span class="qunit">${UNITS[x.q.u].code} ${UNITS[x.q.u].sub}</span><div class="q" style="font-size:16px">${x.q.q}</div>
+      <div class="small">你選：${esc(x.ch)}　正確：<b>${esc(x.q.a)}</b></div><div class="ex">${esc(x.q.ex)}</div></li>`).join('')}</ul></section>`
+    :`<section class="card"><h2>全對！</h2><div class="small">這次沒有錯題，保持這個手感。</div></section>`}`;
+  const mode=G.mode,u=G.u,len=G.len;
+  document.getElementById('again').onclick=()=>start(mode,u,len);
+  document.getElementById('back').onclick=home;
+  const th=document.getElementById('toHub');if(th)th.onclick=()=>hub(u);
+  const w=document.getElementById('weak');if(w)w.onclick=()=>hub(weak[0]);
+  window.scrollTo(0,0);
+}
+function cards(u){
+  const only=u!=null,ids=CARDS.map((c,i)=>i).filter(i=>!only||CARDS[i][0]===u),total=ids.length;
+  let deck=shuffle(ids),known=0,flipped=false;
+  function draw(){
+    if(!deck.length){app.innerHTML=`<section class="card" style="align-items:flex-start"><span class="label">重點卡</span><div class="big">全部記住了！</div>
+      <div class="small">${total} 張卡都過關。${only?'接著考這一課，看看有沒有真的記住。':'去打一場比賽，試試看有沒有真的記住。'}</div>
+      <div class="row"><button class="btn pri" id="toMatch">${only?'考這一課':'去比賽'}</button><button class="btn ghost" id="back">${only?'回這課':'回首頁'}</button></div></section>`;
+      document.getElementById('toMatch').onclick=()=>only?start('unit',u,10):start('match');document.getElementById('back').onclick=only?()=>hub(u):home;return}
+    const c=CARDS[deck[0]];flipped=false;
+    app.innerHTML=`
+    <div class="prog"><button class="btn ghost" id="quit">← 離開</button><span class="small">已記住 ${known} / ${total}</span></div>
+    <div class="flash"><button class="fc" id="fc" aria-label="翻面">
+      <div class="face front"><span class="qunit">${UNITS[c[0]].code}</span><div class="t">${esc(c[1])}</div><div class="hint">先在心裡說出重點，再點一下翻面</div></div>
+      <div class="face back"><span class="qunit">${UNITS[c[0]].code}</span><div class="a">${esc(c[2])}</div></div>
+    </button></div>
+    <div class="row" id="judge" style="visibility:hidden">
+      ${spk(enOnly(c[2]))}
+      <button class="btn ghost" id="again">還不熟，等一下再考我</button>
+      <button class="btn pri" id="got">記住了</button>
+    </div>`;
+    document.getElementById('quit').onclick=only?()=>hub(u):home;
+    document.getElementById('fc').onclick=()=>{flipped=!flipped;document.getElementById('fc').classList.toggle('flip',flipped);document.getElementById('judge').style.visibility='visible'};
+    document.getElementById('got').onclick=()=>{deck.shift();known++;draw()};
+    document.getElementById('again').onclick=()=>{const x=deck.shift();deck.splice(Math.min(3,deck.length),0,x);draw()};
+  }
+  draw();window.scrollTo(0,0);
+}
+home();
+})();
+</script>
+</body>
+</html>

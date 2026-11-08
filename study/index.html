@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d6b4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>楷宸會考衝刺</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: 一欄手機優先的「球員訓練本」— 倒數表頭 → 今日 15 分鐘格 → 本週 → 錯題本 → 路線圖 */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --ink:#18241f; --muted:#5d6b64; --line:#d9e0db;
+  --court:#1d6b4f; --court-soft:#e3efe9; --cork:#c77a12; --cork-soft:#fbeed8; --done:#1d6b4f; --warn:#b4432f;
+  --f-display:"LXGW WenKai TC","Noto Sans TC",serif; --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif; --f-num:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101714; --surface:#18221d; --ink:#e7eee9; --muted:#9aaba2; --line:#2b3a33;
+  --court:#5cc49b; --court-soft:#1d3329; --cork:#f0a940; --cork-soft:#3a2b14; --done:#5cc49b; --warn:#ef8a74; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101714; --surface:#18221d; --ink:#e7eee9; --muted:#9aaba2; --line:#2b3a33;
+  --court:#5cc49b; --court-soft:#1d3329; --cork:#f0a940; --cork-soft:#3a2b14; --done:#5cc49b; --warn:#ef8a74; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 120px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2{font-family:var(--f-display);text-wrap:balance;margin:0;font-weight:700}
+h2{font-size:21px}
+.label{font-size:12px;letter-spacing:.08em;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--court);outline-offset:2px}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:6px}
+.hero h1{font-size:30px}
+.count{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.count .n{font-family:var(--f-num);font-size:52px;font-weight:700;color:var(--court);line-height:1;font-variant-numeric:tabular-nums}
+.count .u{font-size:16px}
+.phase-pill{display:inline-flex;align-items:center;gap:6px;background:var(--court-soft);color:var(--court);border-radius:999px;padding:3px 12px;font-size:13px;font-weight:500;width:fit-content}
+.small{font-size:13px;color:var(--muted)}
+.linkbtn{background:none;border:0;padding:0;color:var(--court);text-decoration:underline;font-size:13px}
+.status{font-size:12px;color:var(--muted)}
+.testbox{border-radius:14px;padding:14px 16px;background:var(--cork-soft);display:flex;flex-direction:column;gap:4px}
+.testbox.calm{background:var(--court-soft)}
+.testbox .big{font-family:var(--f-display);font-size:19px;font-weight:700}
+.testbox .big em{font-style:normal;font-family:var(--f-num);color:var(--cork)}
+.testbox.calm .big em{color:var(--court)}
+.coach{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;position:relative}
+.coach .q{font-family:var(--f-display);font-size:18.5px;line-height:1.65;margin:0;text-wrap:pretty}
+.coach .q::before{content:"";display:block;width:28px;height:3px;background:var(--cork);border-radius:2px;margin-bottom:10px}
+.coach .foot{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.gamelink{display:inline-block;margin-top:6px;font-weight:700;color:var(--court);text-decoration:none;border:1px solid var(--court);border-radius:10px;padding:6px 12px;width:fit-content}
+.modepill{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:1px 8px;background:var(--cork);color:#fff;margin-left:6px;vertical-align:middle}
+.modepill.normal{background:var(--court)}
+.tlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tlist li{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.tlist .past{opacity:.5}
+.tlist li.tw{flex-direction:column;align-items:stretch}
+.thead{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.tacts{display:flex;gap:6px}
+.scope{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.scope .sr{display:flex;gap:8px;align-items:baseline;min-width:0}
+.scope .sr b{flex:0 0 2.6em;font-size:12.5px;color:var(--muted)}
+.scope .units{display:flex;gap:4px;flex-wrap:wrap;min-width:0}
+.unit{font-size:12.5px;border-radius:6px;padding:1px 8px;background:var(--court-soft);color:var(--court)}
+.scope-edit{display:flex;flex-direction:column;gap:8px}
+.scope-edit label{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.cycle{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.cycle div{border-radius:10px;padding:8px;font-size:12.5px;background:var(--bg);border:1px solid var(--line);min-width:0}
+.cycle div b{display:block;font-size:13.5px}
+.cycle div.on{border-color:var(--cork);box-shadow:0 0 0 1px var(--cork)}
+@media (max-width:420px){.cycle{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.status.err{color:var(--warn)}
+
+/* today */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.dayhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dayhead .d{font-family:var(--f-display);font-size:19px;font-weight:700}
+.nav{display:flex;gap:6px}
+.nav button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:4px 10px;font-size:14px}
+.progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--court);transition:width .3s}
+.blocks{display:flex;flex-direction:column;gap:8px;list-style:none;margin:0;padding:0}
+.blk{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface)}
+.blk.en{border-left:5px solid var(--cork)}
+.blk.done{background:var(--court-soft);border-color:transparent}
+.blk.done .t{text-decoration:line-through;color:var(--muted)}
+.chk{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;padding:0}
+.done .chk{background:var(--done);border-color:var(--done);color:var(--surface)}
+.blk .txt{min-width:0}
+.sub{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+.en .sub{color:var(--cork)}
+.t{font-weight:500}
+.tip{font-size:12.5px;color:var(--muted)}
+.go{border:0;background:var(--court);color:var(--surface);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700;white-space:nowrap}
+.done .go{display:none}
+
+/* week */
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.wd{border:1px solid var(--line);border-radius:10px;padding:6px 2px;text-align:center;background:var(--surface);display:flex;flex-direction:column;gap:2px;align-items:center}
+.wd.sel{border-color:var(--court);box-shadow:0 0 0 1px var(--court)}
+.wd .w{font-size:12px;color:var(--muted)}
+.wd .m{font-family:var(--f-num);font-size:13px;font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:44px}
+.dots b{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.dots b.on{background:var(--court)}
+.wsum{display:flex;gap:18px;flex-wrap:wrap}
+.wsum div{display:flex;flex-direction:column}
+.wsum strong{font-family:var(--f-num);font-size:22px;font-variant-numeric:tabular-nums}
+
+/* mistakes */
+.form{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+textarea{resize:vertical;width:100%}
+select,textarea,input[type=text],input[type=date]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+input[type=text]{flex:1 1 200px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:4px 12px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.add{border:0;background:var(--cork);color:#fff;border-radius:10px;padding:10px;font-weight:700}
+.mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.mi{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:start}
+.mi .txt{min-width:0;overflow-wrap:anywhere}
+.mi.ok{opacity:.55}
+.tag{display:inline-block;font-size:11.5px;border-radius:6px;padding:1px 7px;margin-right:4px;background:var(--court-soft);color:var(--court);font-weight:500}
+.tag.en{background:var(--cork-soft);color:var(--cork)}
+.tag.why{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.macts{display:flex;gap:6px;flex-direction:column;align-items:flex-end}
+.mini{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:3px 9px;font-size:12.5px;white-space:nowrap}
+.mini.del{color:var(--warn)}
+.empty{font-size:13.5px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:14px;text-align:center}
+
+/* roadmap */
+.road{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.stage{display:grid;grid-template-columns:22px 1fr;gap:12px}
+.rail{display:flex;flex-direction:column;align-items:center}
+.rail b{width:14px;height:14px;border-radius:50%;border:3px solid var(--line);background:var(--surface);margin-top:5px}
+.rail i{flex:1;width:2px;background:var(--line)}
+.stage.now .rail b{border-color:var(--court);background:var(--court)}
+.stage.past .rail b{border-color:var(--court)}
+.stage .body{padding-bottom:16px;min-width:0}
+.stage h3{margin:0;font-size:16px}
+.stage .when{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.stage ul{margin:4px 0 0;padding-left:18px;font-size:14px}
+.tips{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
+
+/* timer bar */
+.timer{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--bg);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;align-items:center;gap:12px;z-index:5}
+.timer .tt{font-family:var(--f-num);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.timer .what{flex:1;min-width:0;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.timer{flex-wrap:wrap}
+.timer button{border:1px solid var(--bg);background:transparent;color:var(--bg);border-radius:8px;padding:6px 10px;font-size:13px}
+.timer button.pri{background:var(--bg);color:var(--ink);font-weight:700}
+.timer .msg{flex:1 1 100%;font-size:13.5px}
+.timer .msg.warn{color:var(--cork)}
+.timer input{flex:1 1 180px;font:inherit;border-radius:8px;border:0;padding:8px 10px;background:var(--bg);color:var(--ink);min-width:0}
+.note{font-size:12.5px;color:var(--court)}
+.away{font-size:12px;color:var(--warn)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--court);color:var(--surface);padding:8px 16px;border-radius:999px;font-size:14px;z-index:6}
+@media (prefers-reduced-motion:reduce){.progress i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="label">KAICHEN · 會考衝刺本</span>
+    <h1>楷宸的會考讀書系統</h1>
+    <div class="count"><span class="n" id="days">—</span><span class="u">天後會考</span></div>
+    <span class="phase-pill" id="phase">—</span>
+    <div class="small">會考日期 <span id="examTxt"></span>（預估，等心測中心公告後再修改）
+      <button class="linkbtn" id="editExam">修改</button></div>
+    <div class="row" id="examEdit" hidden>
+      <input type="date" id="examInput" aria-label="會考第一天日期">
+      <button class="mini" id="examSave">儲存</button>
+    </div>
+    <div class="status" id="status">連線中…</div>
+  </header>
+
+  <section class="testbox" id="testbox" aria-live="polite"></section>
+
+  <section class="coach" aria-labelledby="cH">
+    <span class="label" id="cH">今天的教練叮嚀 · 給楷宸</span>
+    <p class="q" id="coachQ"></p>
+    <div class="foot"><span class="small" id="coachN"></span><button class="mini" id="coachNext" type="button">再看一句</button></div>
+  </section>
+
+  <section class="card" aria-labelledby="todayH">
+    <div class="dayhead">
+      <div><div class="label"><span id="todayLabel">今天</span><span class="modepill" id="modePill"></span></div><div class="d" id="todayH"></div></div>
+      <div class="nav"><button id="prev" aria-label="前一天">‹</button><button id="goToday">今天</button><button id="next" aria-label="後一天">›</button></div>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="bar" style="width:0"></i></div>
+    <div class="small" id="todaySum"></div>
+    <ol class="blocks" id="blocks"></ol>
+    <div class="small">每一格 15 分鐘。按「開始」計時；計時中切到別的 App 會自動暫停並記下離開次數。時間到要寫一句「剛剛讀了什麼」才能打勾。橘色邊條是英文。</div>
+  </section>
+
+  <section class="card" aria-labelledby="weekH">
+    <h2 id="weekH">本週訓練量</h2>
+    <div class="week" id="week"></div>
+    <div class="wsum" id="wsum"></div>
+  </section>
+
+  <section class="card" aria-labelledby="mH">
+    <h2 id="mH">錯題本</h2>
+    <div class="small">只記錯的題目，並寫下為什麼錯。週五和週日的錯題時間就從這裡挑。</div>
+    <form class="form" id="mform">
+      <div class="row">
+        <select id="mSub" aria-label="科目"><option>英文</option><option>數學</option><option>國文</option><option>自然</option><option>社會</option></select>
+        <input type="text" id="mText" placeholder="例：B2 L3 現在完成式 have been to / have gone to 搞混" aria-label="錯題內容">
+      </div>
+      <div class="chips" id="whyChips" role="group" aria-label="錯的原因"></div>
+      <button class="add" type="submit">記下這題</button>
+    </form>
+    <div class="chips" id="mFilter" role="group" aria-label="篩選"></div>
+    <ul class="mlist" id="mlist"></ul>
+  </section>
+
+  <section class="card" aria-labelledby="tH">
+    <h2 id="tH">段考節奏</h2>
+    <div class="small">國二的段考範圍就是會考範圍，段考讀好＝會考在打底。系統會照段考日期自動切換：</div>
+    <div class="cycle" id="cycle">
+      <div data-m="normal"><b>平常週</b>英文基本功＋跟上學校進度</div>
+      <div data-m="pre1"><b>考前 14～8 天</b>讀課本重點、寫習作</div>
+      <div data-m="pre2"><b>考前 7～1 天</b>寫考卷刷題、看錯題</div>
+      <div data-m="post"><b>考後 3 天</b>訂正考卷、錯題進錯題本</div>
+    </div>
+    <ul class="tlist" id="tlist"></ul>
+    <div class="row">
+      <input type="text" id="tName" placeholder="名稱，例：國二下第一次段考" aria-label="段考名稱">
+      <input type="date" id="tStart" aria-label="第一天">
+      <input type="date" id="tEnd" aria-label="最後一天">
+      <button class="mini" id="tAdd" type="button">加入段考</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="rH">
+    <h2 id="rH">一年半路線圖</h2>
+    <ol class="road" id="road"></ol>
+  </section>
+
+  <section class="card" aria-labelledby="eH">
+    <h2 id="eH">英文加強錦囊</h2>
+    <ul class="tips">
+      <li><b>單字是地基：</b>會考英文約 2000 字，每天 20 個、隔天先複習昨天的，一年半可以背完兩輪。</li>
+      <li><b>聽力是最容易拿的分：</b>題目簡單，靠的是耳朵熟悉度。週末各聽一回會考聽力考古題，聽不懂的句子跟著唸。</li>
+      <li><b>閱讀先看題目再看文章：</b>知道要找什麼，讀起來快很多。</li>
+      <li><b>文法錯題要寫原因：</b>「時態搞混」「單字不會」分開記，才知道下次要補哪裡。</li>
+      <li><b>零碎時間用手機背：</b>搭車、等比賽、上場前，都可以背 5 個單字。</li>
+    </ul>
+  </section>
+</div>
+
+<div class="timer" id="timer" hidden>
+  <div class="msg" id="tmsg" hidden></div>
+  <span class="tt" id="tt">15:00</span><span class="what" id="tw"></span>
+  <button id="tpause" type="button">暫停</button>
+  <button id="tstop" type="button">結束</button>
+  <form id="treport" hidden style="display:contents">
+    <input id="tnote" type="text" maxlength="80" placeholder="我剛剛讀了什麼？例：背了 L3 單字 20 個" aria-label="回報剛剛讀了什麼">
+    <button class="pri" type="submit">回報並打勾</button>
+  </form>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const DEFAULT_EXAM='2028-05-20';
+const P1END='2027-06-30', P2END='2028-01-31';
+const WEEK=['日','一','二','三','四','五','六'];
+const WHY=['觀念不懂','粗心','單字不會','題目看不懂','時間不夠'];
+const UNIT_TIPS={
+  '2-2 根式的運算':'重點：化成最簡根式、同類方根才能加減、根式乘除、分母有理化',
+  '2-3 畢氏定理':'重點：a²＋b²＝c²（c 是斜邊）、背熟 3-4-5、5-12-13、8-15-17、坐標兩點距離',
+  '3-1 提公因式法與乘法公式因式分解':'重點：先提公因式；平方差 a²－b²＝(a＋b)(a－b)；和、差的平方公式倒著用',
+  '3-2 利用十字交乘法因式分解':'重點：x²＋bx＋c 找「相乘＝c、相加＝b」的兩數；ax²＋bx＋c 交叉相乘檢查中間項',
+  'L3 All Animals Were Going to the Party':'重點：過去進行式 was / were＋V-ing、when / while；背熟本課單字',
+  'L4 I Want to Take a Working Holiday':'重點：want / plan / decide＋to V，enjoy / finish / practice＋V-ing；背熟本課單字',
+  'L5 Spending Time in Taiwan Is a Wonderful Experience':'重點：V-ing 當主詞（Spending time… is…）；背熟本課單字和課文句型',
+  'L6 The Power of AI Will Shape the Future':'重點：背熟本課單字和課文句型，文法以課本為準',
+  '地3 中國的產業發展與地區差異':'重點：北麥南稻（秦嶺淮河）、稻作熟制、改革開放與經濟特區、西部大開發、三大經濟區',
+  '地4 中國的經濟發展與全球關聯':'重點：世界工廠→世界市場、2001 加入 WTO、2013 一帶一路、美中貿易戰與產業外移',
+  '歷3 宋元時期的民族互動':'重點：杯酒釋兵權、遼＝契丹／西夏＝党項／金＝女真、交子、元四等人「蒙色漢南」',
+  '歷4 明清帝國與天朝體制':'重點：廢宰相、鄭和下西洋、1644 入關、軍機處、天朝體制、廣州一口通商、馬戛爾尼',
+  '公3 政府與權力分立':'重點：孟德斯鳩三權分立、我國五權「行立司考監」、總統制（美）vs 內閣制（英）',
+  '公4 我國的中央政府':'重點：總統職權、行政院對立法院負責、不信任案與解散立法院、各院職權',
+};
+const DEFAULT_TESTS=[{name:'國二上第二次段考',start:'2026-12-01',end:'2026-12-02',book:{英文:'南一',數學:'南一',社會:'康軒'},scope:{英文:['L3 All Animals Were Going to the Party','L4 I Want to Take a Working Holiday'],數學:['2-2 根式的運算','2-3 畢氏定理','3-1 提公因式法與乘法公式因式分解','3-2 利用十字交乘法因式分解'],社會:['地3 中國的產業發展與地區差異','地4 中國的經濟發展與全球關聯','歷3 宋元時期的民族互動','歷4 明清帝國與天朝體制','公3 政府與權力分立','公4 我國的中央政府']}},{name:'國二上第三次段考',start:'2027-01-18',end:'2027-01-19',book:{英文:'南一'},scope:{英文:['L5 Spending Time in Taiwan Is a Wonderful Experience','L6 The Power of AI Will Shape the Future']}}];
+const TSUB=['數學','英文','自然','國文','社會'];
+
+/* ---------- 讀書內容 ---------- */
+const EN={
+  word:['英文單字','背 20 個新單字＋複習昨天的','搭車、等比賽都能做'],
+  w2:[ ['英文文法','課本句型＋5 題文法練習','錯的記到錯題本'], ['英文閱讀','讀 1 篇閱讀測驗','先看題目再看文章'], ['英文考古題','會考閱讀 10 題','計時，對完答案馬上訂正'] ],
+  listen:['英文聽力','聽 1 回會考聽力題','聽不懂的句子跟著唸三次'],
+  read:[ ['英文閱讀','讀 1 篇短文，圈出不會的字','不會的字抄進單字本'], ['英文閱讀','閱讀測驗 2 篇','先看題目再看文章'], ['英文考古題','會考閱讀題組','模擬考場，不查字典'] ],
+  review:['英文單字','複習這週背過的全部單字','不熟的打星號'],
+  grammar:[ ['英文文法','整理這週學校教的文法','用自己的話寫一句例句'], ['英文文法','國一國二文法總複習 1 單元','時態、比較級、被動式優先'], ['英文錯題','重寫英文錯題本','還錯的再打一顆星'] ],
+};
+const MATH=[ ['數學','學校本週進度練習題','不會的題目先標記'], ['數學','總複習講義 1 小節','國一國二內容'], ['數學','會考考古題 5 題','寫完對答案、訂正'] ];
+const ROT={1:['國文','課文重點＋字音字形','背誦可以用零碎時間'],2:['自然','本週進度重點','畫一張觀念圖'],3:['社會','名詞、地圖、年代','唸出來比用看的記得牢'],4:['自然','計算題練習','理化公式寫一遍'],5:['錯題本','重寫這週的錯題','還不會的留到週日']};
+function phaseIdx(k){return k<=P1END?0:(k<=P2END?1:2)}
+function basePlan(k){
+  const p=phaseIdx(k), d=new Date(k+'T00:00:00'), w=d.getDay(), mk=(a,en)=>({s:a[0],t:a[1],tip:a[2],en:!!en});
+  if(w>=1&&w<=5) return [mk(EN.word,1),mk(EN.w2[p],1),mk(MATH[p]),mk(ROT[w])];
+  if(w===6) return [mk(EN.listen,1),mk(EN.read[p],1),mk(EN.read[p],1),mk(EN.review,1),mk(MATH[p]),mk(MATH[p]),mk(['自然',p<2?'本週重點複習':'會考考古題 10 題','']),mk(['錯題本','挑 5 題重寫',''])];
+  return [mk(EN.grammar[p],1),mk(EN.word,1),mk(EN.listen,1),mk(['社會',p<2?'本週重點複習':'會考考古題 15 題','']),mk(['國文',p<2?'閱讀測驗 1 篇':'會考考古題 10 題','']),mk(MATH[p]),mk(['錯題本','把還不會的錯題再寫一次','']),mk(['和媽媽對焦','看這週打勾數、錯題，決定下週先補哪裡','15 分鐘就好，不檢討、只規劃'])];
+}
+function dDiff(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/864e5)}
+function testCtx(k){
+  const ts=(S.tests||[]).slice().sort((a,b)=>a.start<b.start?-1:1);
+  for(const t of ts){const d=dDiff(k,t.start);
+    if(k>=t.start&&k<=t.end) return {m:'during',t};
+    if(d>=1&&d<=14) return {m:d>7?'pre1':'pre2',d,t};
+    const a=dDiff(t.end,k); if(a>=1&&a<=3) return {m:'post',a,t};}
+  return {m:'normal'};
+}
+function plan(k){
+  const c=testCtx(k), w=new Date(k+'T00:00:00').getDay(), we=(w===0||w===6), mk=(s,t,tip,en)=>({s,t,tip:tip||'',en:!!en});
+  if(c.m==='normal') return basePlan(k);
+  if(c.m==='during') return [mk('考前複習','只看明天要考科目的錯題和筆記','不要再開新的題目'),mk('休息','早點睡，比多讀一小時更有用','')];
+  if(c.m==='post') return we
+    ?[mk('英文單字','背 20 個新單字','基本功不中斷',1),mk('英文訂正','段考英文考卷訂正','錯的原因寫清楚',1),mk('數學訂正','段考數學考卷訂正',''),mk('自然訂正','段考自然考卷訂正',''),mk('國文訂正','段考國文考卷訂正',''),mk('社會訂正','段考社會考卷訂正',''),mk('錯題本','把段考錯題記到錯題本','這些就是會考的弱點地圖'),mk('和媽媽對焦','看段考成績，決定接下來先補哪一科','只規劃，不責備')]
+    :[mk('英文單字','背 20 個新單字','基本功不中斷',1),mk('考卷訂正',TSUB[(c.a*2-2)%5]+'段考考卷訂正',''),mk('考卷訂正',TSUB[(c.a*2-1)%5]+'段考考卷訂正',''),mk('錯題本','把今天訂正的錯題記下來','')];
+  const d=c.d, s=i=>TSUB[(d+i)%5], pre1=c.m==='pre1';
+  const task=x=>pre1?(x==='英文'?'段考範圍課文、句型背熟':x==='數學'?'段考範圍習作、課本例題':'段考範圍課本重點畫線＋習作')
+                    :(x==='英文'?'寫 1 份英文段考卷（學校考古題或評量）':x==='數學'?'段考範圍題目刷題，錯的重寫':'寫段考範圍考卷，錯的訂正');
+  const en=x=>x==='英文';
+  const sc=(c.t&&c.t.scope)||{}, cnt={};
+  const preSubs=(dd,w)=>{const ss=i=>TSUB[(dd+i)%5];if(dd<=2&&!w)return[];return w?['英文','英文','數學','數學',ss(0),ss(1)]:[ss(0),ss(1),ss(2)]};
+  const prior=x=>{let n=0;for(let dd=14;dd>d;dd--){const w=new Date(addDays(c.t.start,-dd)+'T00:00:00').getDay();n+=preSubs(dd,w===0||w===6).filter(y=>y===x).length}return n};
+  const blk=x=>{const us=sc[x]||[];if(!us.length)return mk(x,task(x),'',en(x));
+    const n=cnt[x]=(cnt[x]||0)+1, u=us[(prior(x)+n-1)%us.length];
+    const t=pre1?(x==='英文'?'課文、句型背熟':x==='數學'?'課本例題＋習作':'課本重點畫線＋習作'):(x==='數學'?'寫考卷，錯的重寫':'寫考卷，錯的訂正');
+    return mk(x+' · '+u.split(' ')[0],u+'｜'+t,UNIT_TIPS[u]||'',en(x))};
+  if(d<=2&&!we) return [mk('英文單字','段考範圍單字再看一次','',1),mk('錯題本','只看段考範圍的錯題',''),mk(s(0),'看筆記和畫線重點',''),mk('休息','早點睡','睡飽考試才記得住')];
+  if(we){const a=['英文','英文','數學','數學',s(0),s(1)].map(blk);
+    return [mk('英文單字','段考範圍單字全部複習一次','',1),...a.slice(0,6),mk('錯題本','這週寫錯的題目再寫一次','')];}
+  return [mk('英文單字','段考範圍單字 20 個','零碎時間也可',1),blk(s(0)),blk(s(1)),blk(s(2))];
+}
+const COACH={
+  all:[
+    '段考和會考不用分開準備。國二的段考範圍，本來就是會考的考試範圍。把段考讀好，就是在幫會考打地基。就像比賽前加練基本功，不會耽誤長期訓練。',
+    '妳讀書的時間比別人少，所以每一個 15 分鐘都要像比賽中的一分：專心打好眼前這一球就好。',
+    '羽球選手不會每天練所有技術，而是針對弱點加練。英文就是妳現在要加練的那一拍。',
+    '每天 20 個單字看起來很少，一年半就是一萬個以上的練習次數。基本功就是這樣累積出來的。',
+    '錯題不是失敗，是對手幫妳找到的破綻。記下來、補起來，下次就不會在同一球失分。',
+    '會考不是跟別人比排名，是跟標準比。只要把自己的弱點一個個補起來，就會往 A 前進。',
+    '累的時候不用逼自己讀很久，先完成一格 15 分鐘就好。開始了，常常就停不下來。',
+    '搭車、等比賽、上場前的空檔，背 5 個單字。高手都很會利用零碎時間。',
+    '睡飽也是訓練的一部分。沒睡飽，打球會失誤，讀書也會記不住。',
+    '比賽輸一場不代表什麼，考壞一次也一樣。重要的是賽後檢討，下一場打得更好。',
+    '讀完一段，闔上書講給媽媽聽。講得出來，才是真的會了。',
+    '妳能在球場上堅持到最後一分，讀書也一定可以。同一個妳，同一種韌性。',
+  ],
+  normal:['現在是平常週，最適合把英文基本功練扎實。平常多流的汗，考前就少流淚。'],
+  pre1:['段考前兩週開始了。先把課本和習作讀熟，就像比賽前先把基本步法練順。','衝刺期還是要背單字。主力選手再忙，也不會停掉每天的基本練習。'],
+  pre2:['最後一週，用考卷實戰。寫錯的地方，就是考前最值得再看一次的地方。','考前不要開新的題目，把會的變得更穩，比多學一點更重要。'],
+  during:['今天只看錯題和筆記，然後早點睡。妳已經準備好了，上場打出平常的水準就好。'],
+  post:['考完了，先恭喜自己撐過來！接下來三天訂正考卷，這是最有價值的三天。','段考考卷是會考最好的練習題。訂正完記進錯題本，國三總複習時它會變成妳的弱點地圖。'],
+};
+let coachOff=0;
+function coachList(k){const m=testCtx(k).m;return (COACH[m]||[]).concat(COACH.all)}
+let editScope=null;
+function scopeView(t){const sc=t.scope||{},ks=TSUB.filter(k=>(sc[k]||[]).length);
+  if(!ks.length) return '<div class="small">還沒有填考試範圍。按「編輯範圍」，每科一行一個單元。</div>';
+  return '<div class="scope">'+ks.map(k=>`<div class="sr"><b>${k}</b><span class="units">${sc[k].map(u=>`<span class="unit">${esc(u)}</span>`).join('')}${t.book&&t.book[k]?`<span class="small">（${esc(t.book[k])}）</span>`:''}</span></div>`).join('')+'</div>'}
+function scopeLine(t){const sc=t.scope||{},ks=TSUB.filter(k=>(sc[k]||[]).length);
+  return ks.length?'<div class="small">範圍：'+ks.map(k=>k+' '+sc[k].map(u=>esc(u.split(' ')[0])).join('、')).join('；')+'</div>':''}
+function openScope(start){const t=S.tests.find(x=>x.start===start);if(!t)return;editScope=start;
+  const li=[...$('tlist').children].find(x=>x.querySelector(`[data-tscope="${start}"]`));
+  const sc=t.scope||{};
+  li.insertAdjacentHTML('beforeend',`<div class="scope-edit">${TSUB.map((k,i)=>`<label>${k}（一行一個單元）<textarea id="sc${i}" rows="${Math.max(2,(sc[k]||[]).length)}">${esc((sc[k]||[]).join('\n'))}</textarea></label>`).join('')}
+    <div class="row"><button class="mini" type="button" data-scsave="1">儲存範圍</button><button class="mini" type="button" data-sccancel="1">取消</button></div></div>`);}
+function renderCoach(){const tk=todayKey(),L=coachList(tk),base=Math.floor(new Date(tk+'T00:00:00')/864e5);
+  const i=coachOff===0?0:((base+coachOff)%L.length+L.length)%L.length;
+  // 第 0 句優先放當下模式的叮嚀；平常日則依日期輪替
+  const idx=coachOff===0&&testCtx(tk).m==='normal'?(base%L.length):i;
+  $('coachQ').textContent=L[idx];$('coachN').textContent=(idx+1)+' / '+L.length}
+const STAGES=[
+  {n:'國二・補洞期',when:'現在 → 2027/6',end:P1END,items:['跟上學校進度，不讓洞變大','英文每天單字＋文法，打好地基','開始寫錯題本']},
+  {n:'國三上・總複習期',when:'2027/7 → 2028/1',end:P2END,items:['暑假開始複習國一國二','英文每天一篇閱讀','每週至少一次考古題']},
+  {n:'國三下・實戰期',when:'2028/2 → 會考',end:'9999',items:['大量寫考古題、模擬考','考前只看錯題本與單字星號','作息調成考試時間']},
+];
+
+/* ---------- 狀態 ---------- */
+let S={days:{},mistakes:[],exam:DEFAULT_EXAM,tests:DEFAULT_TESTS};
+let sel=todayKey(), filter='全部', why=new Set(), db=null, mode='local', armedDel=null;
+function todayKey(){const d=new Date();return fmt(d)}
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function addDays(k,n){const d=new Date(k+'T00:00:00');d.setDate(d.getDate()+n);return fmt(d)}
+function lsGet(){try{const v=localStorage.getItem('kc-study');if(v){const o=JSON.parse(v);S={...S,...o}}}catch(e){}}
+function lsSet(){try{localStorage.setItem('kc-study',JSON.stringify(S))}catch(e){}}
+lsGet();
+
+/* ---------- 渲染 ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function blocksOf(k){const n=plan(k).length;const b=(S.days[k]&&S.days[k].b)||[];return Array.from({length:n},(_,i)=>!!b[i])}
+function render(){
+  const tk=todayKey();
+  const diff=Math.ceil((new Date(S.exam+'T00:00:00')-new Date(tk+'T00:00:00'))/864e5);
+  $('days').textContent=diff>0?diff:0;
+  $('examTxt').textContent=S.exam.replace(/-/g,'/');
+  $('phase').textContent='目前階段：'+STAGES[phaseIdx(tk)].n;
+  renderCoach();
+  // test box
+  const nxt=(S.tests||[]).filter(t=>t.end>=tk).sort((a,b)=>a.start<b.start?-1:1)[0], c=testCtx(tk);
+  const tb=$('testbox');
+  if(!nxt){tb.className='testbox calm';tb.innerHTML='<div class="big">目前沒有排定的段考</div><div class="small">在下方「段考節奏」加入下一次段考日期。</div>'}
+  else{const dd=dDiff(tk,nxt.start), MSG={normal:'現在是平常週：英文基本功＋跟上學校進度。距離考前兩週還有 '+Math.max(0,dd-14)+' 天，會自動切換。',
+      pre1:'段考衝刺第一段：讀課本重點、寫習作。英文單字每天照背。',pre2:'段考衝刺第二段：寫考卷、看錯題。',during:'段考中：只看錯題和筆記，早點睡。',post:'考完了！這三天把考卷訂正、錯題記進錯題本。'};
+    tb.className='testbox'+(c.m==='normal'?' calm':'');
+    tb.innerHTML=`<span class="label">下一次段考 · ${esc(nxt.name)}</span><div class="big">${dd>0?'還有 <em>'+dd+'</em> 天':'考試進行中'}（${nxt.start.slice(5).replace('-','/')}）</div><div class="small">${MSG[c.m]}</div>${scopeLine(nxt)}${nxt.start==='2026-12-01'?'<div class="row"><a class="gamelink" href="english.html">🏸 英文闖關 →</a><a class="gamelink" href="math.html">🏸 數學闖關 →</a><a class="gamelink" href="social.html">🏸 社會闖關 →</a></div>':''}`;}
+  [...$('cycle').children].forEach(x=>x.classList.toggle('on',x.dataset.m===(c.m==='during'?'pre2':c.m)));
+  if(!editScope) $('tlist').innerHTML=(S.tests||[]).slice().sort((a,b)=>a.start<b.start?-1:1).map(t=>`<li class="tw ${t.end<tk?'past':''}">
+    <div class="thead"><span>${esc(t.name)}<br><span class="small">${t.start.replace(/-/g,'/')} – ${t.end.slice(5).replace('-','/')}</span></span>
+    <span class="tacts"><button class="mini" data-tscope="${esc(t.start)}">${t.end<tk?'看範圍':'編輯範圍'}</button><button class="mini del" data-tdel="${esc(t.start)}">刪除</button></span></div>
+    ${scopeView(t)}</li>`).join('');
+  // today
+  const d=new Date(sel+'T00:00:00'), pl=plan(sel), b=blocksOf(sel), dn=S.days[sel]||{};
+  $('todayLabel').textContent=sel===tk?'今天':(sel<tk?'回顧':'預習');
+  const sc=testCtx(sel), ML={normal:'平常週',pre1:'段考衝刺',pre2:'段考衝刺',during:'段考中',post:'考後訂正'};
+  $('modePill').textContent=ML[sc.m];$('modePill').className='modepill'+(sc.m==='normal'?' normal':'');
+  $('todayH').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日（'+WEEK[d.getDay()]+'）';
+  const done=b.filter(Boolean).length;
+  $('bar').style.width=(done/pl.length*100)+'%';
+  $('todaySum').textContent='完成 '+done+' / '+pl.length+' 格 · '+(done*15)+' 分鐘'+(done===pl.length?' · 今天練完了！':'');
+  $('blocks').innerHTML=pl.map((x,i)=>`<li class="blk${x.en?' en':''}${b[i]?' done':''}">
+    <button class="chk" data-chk="${i}" aria-label="${b[i]?'取消':'完成'}：${esc(x.s)}">${b[i]?'✓':''}</button>
+    <div class="txt"><div class="sub">${esc(x.s)}</div><div class="t">${esc(x.t)}</div>${b[i]&&dn.notes&&dn.notes[i]?`<div class="note">回報：${esc(dn.notes[i])}</div>`:(x.tip?`<div class="tip">${esc(x.tip)}</div>`:'')}${dn.away&&dn.away[i]?`<div class="away">計時中離開 ${dn.away[i]} 次</div>`:''}</div>
+    <button class="go" data-go="${i}">開始</button></li>`).join('');
+  // week (Mon start)
+  const wd=d.getDay(), mon=addDays(sel,-(wd===0?6:wd-1));
+  let tot=0,max=0,en=0,aw=0;
+  $('week').innerHTML=Array.from({length:7},(_,i)=>{const k=addDays(mon,i),p=plan(k),bb=blocksOf(k),c=bb.filter(Boolean).length;
+    tot+=c;max+=p.length;p.forEach((x,j)=>{if(bb[j]&&x.en)en++});((S.days[k]||{}).away||[]).forEach(v=>aw+=v||0);
+    const dd=new Date(k+'T00:00:00');
+    return `<button class="wd${k===sel?' sel':''}" data-day="${k}" aria-label="${dd.getMonth()+1}/${dd.getDate()} 完成 ${c} 格"><span class="w">${WEEK[dd.getDay()]}</span><span class="m">${dd.getDate()}</span><span class="dots">${bb.map(v=>`<b class="${v?'on':''}"></b>`).join('')}</span></button>`}).join('');
+  $('wsum').innerHTML=`<div><span class="label">本週讀書</span><strong>${Math.floor(tot*15/60)}h${String(tot*15%60).padStart(2,'0')}</strong></div>
+    <div><span class="label">完成格數</span><strong>${tot}/${max}</strong></div>
+    <div><span class="label">英文時間</span><strong>${en*15}分</strong></div>
+    <div><span class="label">計時中離開</span><strong>${aw}次</strong></div>`;
+  // mistakes
+  $('whyChips').innerHTML=WHY.map(w=>`<button type="button" class="chip" data-why="${w}" aria-pressed="${why.has(w)}">${w}</button>`).join('');
+  const subs=['全部','英文','數學','國文','自然','社會','已學會'];
+  $('mFilter').innerHTML=subs.map(s=>`<button type="button" class="chip" data-filter="${s}" aria-pressed="${filter===s}">${s}</button>`).join('');
+  let ms=S.mistakes.slice().sort((a,b)=>(b.created||0)-(a.created||0));
+  ms=filter==='已學會'?ms.filter(m=>m.ok):ms.filter(m=>!m.ok&&(filter==='全部'||m.sub===filter));
+  $('mlist').innerHTML=ms.length?ms.map(m=>`<li class="mi${m.ok?' ok':''}"><div class="txt">
+      <span class="tag${m.sub==='英文'?' en':''}">${esc(m.sub)}</span>${(m.why||[]).map(w=>`<span class="tag why">${esc(w)}</span>`).join('')}
+      <div>${esc(m.text)}</div><div class="tip">${m.created?new Date(m.created).toLocaleDateString('zh-TW'):''}</div></div>
+      <div class="macts"><button class="mini" data-ok="${m.id}">${m.ok?'再複習':'學會了'}</button>
+      <button class="mini del" data-del="${m.id}">${armedDel===m.id?'確定刪除':'刪除'}</button></div></li>`).join('')
+    :`<li class="empty">${filter==='已學會'?'還沒有標記學會的題目。':'這裡還沒有錯題。寫考卷或練習時錯的題目，就在上面記下來。'}</li>`;
+  // roadmap
+  const pi=phaseIdx(tk);
+  $('road').innerHTML=STAGES.map((s,i)=>`<li class="stage${i===pi?' now':(i<pi?' past':'')}"><div class="rail"><b></b>${i<2?'<i></i>':''}</div>
+    <div class="body"><h3>${s.n}${i===pi?'（現在）':''}</h3><div class="when">${s.when}</div><ul>${s.items.map(t=>`<li>${t}</li>`).join('')}</ul></div></li>`).join('');
+}
+
+/* ---------- 寫入 ---------- */
+const chains={};
+function queue(key,fn){chains[key]=(chains[key]||Promise.resolve()).then(fn).catch(e=>setStatus('沒有存成功：'+(e&&e.message||'請確認有編輯權限'),true));return chains[key]}
+function dayObj(k){const o=S.days[k]||{};return {b:blocksOf(k),notes:(o.notes||[]).slice(),away:(o.away||[]).slice()}}
+function saveDay(k,o){S.days[k]=o;render();
+  put('days/'+k,{b:o.b,notes:o.notes,away:o.away,updated:Date.now()})}
+function finishBlock(k,i,note,away){const o=dayObj(k);o.b[i]=true;o.notes[i]=note;o.away[i]=(o.away[i]||0)+(away||0);
+  for(let j=0;j<o.b.length;j++){if(o.notes[j]==null)o.notes[j]='';if(o.away[j]==null)o.away[j]=0}saveDay(k,o)}
+function toggle(i){const o=dayObj(sel);
+  if(o.b[i]){o.b[i]=false;for(let j=0;j<o.b.length;j++){if(o.notes[j]==null)o.notes[j]='';if(o.away[j]==null)o.away[j]=0}saveDay(sel,o);return}
+  // 直接打勾（例如用廚房計時器讀紙本）也要回報
+  T={k:sel,i,remain:0,running:false,away:0,awayMs:0,what:plan(sel)[i].s+'：'+plan(sel)[i].t};showReport()}
+
+/* ---------- 計時器 ---------- */
+let T=null,tick=null;
+function startTimer(i){T={k:sel,i,remain:15*60e3,running:true,startAt:Date.now(),away:0,awayMs:0,what:plan(sel)[i].s+'：'+plan(sel)[i].t};
+  $('timer').hidden=false;$('tw').textContent=T.what;$('treport').hidden=true;$('tmsg').hidden=true;['tt','tw','tpause'].forEach(x=>$(x).hidden=false);$('tpause').textContent='暫停';
+  clearInterval(tick);tick=setInterval(step,500);step()}
+function leftMs(){return T.running?T.remain-(Date.now()-T.startAt):T.remain}
+function pauseT(){if(!T||!T.running)return;T.remain=leftMs();T.running=false;$('tpause').textContent='繼續'}
+function resumeT(){if(!T||T.running)return;T.startAt=Date.now();T.running=true;$('tpause').textContent='暫停';$('tmsg').hidden=true}
+function showReport(){clearInterval(tick);$('timer').hidden=false;['tt','tw','tpause'].forEach(x=>$(x).hidden=true);
+  $('tmsg').hidden=false;$('tmsg').className='msg';
+  $('tmsg').textContent=(T.remain===0&&T.startAt?'15 分鐘到！':'')+'「'+T.what+'」'+(T.away?'（中途離開 '+T.away+' 次）':'')+'，寫一句剛剛讀了什麼：';
+  $('treport').hidden=false;$('tnote').value='';setTimeout(()=>$('tnote').focus(),50)}
+document.addEventListener('visibilitychange',()=>{if(!T||!$('treport').hidden)return;
+  if(document.hidden){if(T.running){pauseT();T.away++;T.hiddenAt=Date.now()}}
+  else if(T.hiddenAt){T.awayMs+=Date.now()-T.hiddenAt;T.hiddenAt=0;$('tmsg').hidden=false;$('tmsg').className='msg warn';
+    $('tmsg').textContent='剛剛離開了頁面，計時已暫停（這格已離開 '+T.away+' 次）。準備好再按「繼續」。'}});
+function step(){if(!T)return;const left=Math.max(0,leftMs()),s=Math.ceil(left/1000);
+  $('tt').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  if(left<=0&&T.running){T.remain=0;T.running=false;showReport()}}
+function stopTimer(){T=null;clearInterval(tick);$('timer').hidden=true;$('treport').hidden=true;$('tmsg').hidden=true}
+function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,2600)}
+function setStatus(t,err){const s=$('status');s.textContent=t;s.classList.toggle('err',!!err)}
+
+/* ---------- 事件 ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.chk!=null) toggle(+t.dataset.chk);
+  else if(t.dataset.go!=null) startTimer(+t.dataset.go);
+  else if(t.dataset.tscope){if(editScope)return;openScope(t.dataset.tscope)}
+  else if(t.dataset.scsave){const tt=S.tests.find(x=>x.start===editScope);if(tt){const sc={};TSUB.forEach((k,i)=>{const v=$('sc'+i).value.split('\n').map(x=>x.trim()).filter(Boolean);if(v.length)sc[k]=v});tt.scope=sc}
+    editScope=null;render();saveSettings();toast('範圍已儲存')}
+  else if(t.dataset.sccancel){editScope=null;render()}
+  else if(t.dataset.tdel){S.tests=S.tests.filter(x=>x.start!==t.dataset.tdel);render();saveSettings()}
+  else if(t.dataset.day){sel=t.dataset.day;render()}
+  else if(t.dataset.why){why.has(t.dataset.why)?why.delete(t.dataset.why):why.add(t.dataset.why);render()}
+  else if(t.dataset.filter){filter=t.dataset.filter;render()}
+  else if(t.dataset.ok){const m=S.mistakes.find(x=>x.id===t.dataset.ok);if(!m)return;m.ok=!m.ok;render();
+    put('mistakes/'+m.id,{sub:m.sub,text:m.text,why:m.why||[],ok:m.ok,created:m.created})}
+  else if(t.dataset.del){const id=t.dataset.del;if(armedDel!==id){armedDel=id;render();setTimeout(()=>{if(armedDel===id){armedDel=null;render()}},3000);return}
+    armedDel=null;S.mistakes=S.mistakes.filter(x=>x.id!==id);render();
+    del('mistakes/'+id)}
+});
+$('prev').onclick=()=>{sel=addDays(sel,-1);render()};
+$('next').onclick=()=>{sel=addDays(sel,1);render()};
+$('goToday').onclick=()=>{sel=todayKey();render()};
+$('tstop').onclick=stopTimer;
+$('tpause').onclick=()=>{if(!T)return;T.running?pauseT():resumeT()};
+$('treport').addEventListener('submit',e=>{e.preventDefault();const n=$('tnote').value.trim();
+  if(n.length<4){$('tmsg').className='msg warn';$('tmsg').textContent='多寫幾個字，說說剛剛讀了哪一課、哪個重點。';$('tnote').focus();return}
+  const {k,i,away}=T;stopTimer();finishBlock(k,i,n,away);toast('完成一格 ✓')});
+$('coachNext').onclick=()=>{coachOff++;renderCoach()};
+$('editExam').onclick=()=>{$('examEdit').hidden=!$('examEdit').hidden;$('examInput').value=S.exam};
+$('examSave').onclick=()=>{const v=$('examInput').value;if(!v)return;S.exam=v;$('examEdit').hidden=true;render();
+  saveSettings()};
+function saveSettings(){put('settings/main',{exam:S.exam,tests:S.tests})}
+$('tAdd').onclick=()=>{const n=$('tName').value.trim()||'段考',a=$('tStart').value,b=$('tEnd').value||a;
+  if(!a){toast('請先選段考第一天');return}
+  S.tests=(S.tests||[]).filter(t=>t.start!==a).concat([{name:n,start:a,end:b<a?a:b}]);
+  $('tName').value='';$('tStart').value='';$('tEnd').value='';render();saveSettings();toast('已加入段考')};
+$('mform').addEventListener('submit',e=>{e.preventDefault();const text=$('mText').value.trim();if(!text){$('mText').focus();return}
+  const m={sub:$('mSub').value,text,why:[...why],ok:false,created:Date.now()};
+  $('mText').value='';why.clear();
+  m.id='m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);S.mistakes.push(m);render();
+  put('mistakes/'+m.id,{sub:m.sub,text:m.text,why:m.why,ok:false,created:m.created});
+  toast('記下來了');
+});
+render();
+setInterval(()=>{if(!T)render()},60e3);
+
+/* ---------- 雲端同步（Google 試算表） ---------- */
+// 把 Google Apps Script「網頁應用程式」的網址貼在下面引號裡，兩支手機就會同步
+const SCRIPT_URL='';
+let cloudOn=!!SCRIPT_URL,pending=0,firstPull=true;
+const OKMSG='已同步 ✓ 媽媽和楷宸看到的是同一份進度';
+function applySettings(v){S.exam=(v&&v.exam)||DEFAULT_EXAM;S.tests=((v&&v.tests)||DEFAULT_TESTS).map(t=>{const d=DEFAULT_TESTS.find(x=>x.start===t.start);return d?{...t,scope:{...d.scope,...(t.scope||{})},book:{...(d.book||{}),...(t.book||{})}}:t})}
+async function cloudPush(ops){pending++;
+  try{const r=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({ops})});const j=await r.json();if(!j.ok)throw new Error(j.error||'');setStatus(OKMSG)}
+  catch(e){setStatus('這筆先存在這支手機，雲端沒有存成功（網路恢復後再操作一次就會補上）',true)}
+  finally{pending--}}
+function put(key,value){lsSet();if(cloudOn)queue(key,()=>cloudPush([{action:'set',key,value}]))}
+function del(key){lsSet();if(cloudOn)queue(key,()=>cloudPush([{action:'delete',key}]))}
+function applyCloud(d){const days={},ms=[];let st=null;
+  Object.keys(d).forEach(k=>{const i=k.indexOf('/'),c=k.slice(0,i),id=k.slice(i+1);if(c==='days')days[id]=d[k];else if(c==='mistakes')ms.push({id,...d[k]});else if(k==='settings/main')st=d[k]});
+  S.days=days;S.mistakes=ms;applySettings(st)}
+async function pull(){
+  if(!cloudOn||pending||T)return;
+  try{const r=await fetch(SCRIPT_URL+'?t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error||'');
+    if(pending)return;
+    const d=j.data||{};
+    if(firstPull&&!Object.keys(d).length&&(Object.keys(S.days).length||S.mistakes.length)){
+      // 試算表還是空的：把這支手機原本的紀錄搬上去
+      const ops=Object.keys(S.days).map(k=>({action:'set',key:'days/'+k,value:S.days[k]})).concat(S.mistakes.map(m=>({action:'set',key:'mistakes/'+m.id,value:{sub:m.sub,text:m.text,why:m.why||[],ok:!!m.ok,created:m.created}})),[{action:'set',key:'settings/main',value:{exam:S.exam,tests:S.tests}}]);
+      firstPull=false;await cloudPush(ops);return}
+    firstPull=false;applyCloud(d);lsSet();render();setStatus(OKMSG)}
+  catch(e){setStatus('雲端暫時連不上，先顯示這支手機上的資料',true)}}
+applySettings({exam:S.exam,tests:S.tests});render();
+if(cloudOn){setStatus('連線中…');pull();setInterval(()=>{if(!document.hidden)pull()},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()})}
+else setStatus('目前只存在這支手機（還沒接上 Google 試算表）');
+})();
+</script>
+</body>
+</html>

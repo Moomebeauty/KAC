@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d6b4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>楷宸社會闖關</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: 單欄手機優先；首頁 → 比賽/練習（記分板＋題目卡）→ 結算；重點卡獨立一頁。與讀書系統同一套球場綠＋羽毛球軟木橘 */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --ink:#18241f; --muted:#5d6b64; --line:#d9e0db;
+  --court:#1d6b4f; --court-soft:#e3efe9; --cork:#c77a12; --cork-soft:#fbeed8; --bad:#b4432f; --bad-soft:#f8e3de;
+  --f-display:"LXGW WenKai TC","Noto Sans TC",serif; --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif; --f-num:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101714; --surface:#18221d; --ink:#e7eee9; --muted:#9aaba2; --line:#2b3a33;
+  --court:#5cc49b; --court-soft:#1d3329; --cork:#f0a940; --cork-soft:#3a2b14; --bad:#ef8a74; --bad-soft:#3b211c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101714; --surface:#18221d; --ink:#e7eee9; --muted:#9aaba2; --line:#2b3a33;
+  --court:#5cc49b; --court-soft:#1d3329; --cork:#f0a940; --cork-soft:#3a2b14; --bad:#ef8a74; --bad-soft:#3b211c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:30px}
+h2{font-size:20px}
+.label{font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.small{font-size:13px;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--court);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:16px}
+.btn.pri{background:var(--court);color:var(--surface)}
+.btn.cork{background:var(--cork);color:#fff}
+.btn.ghost{background:transparent;border:1px solid var(--line);font-weight:500;font-size:14px;padding:8px 12px}
+
+/* home */
+.match{background:var(--court);color:var(--surface);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.match::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(90deg,transparent calc(50% - 1px),rgba(255,255,255,.25) calc(50% - 1px),rgba(255,255,255,.25) calc(50% + 1px),transparent calc(50% + 1px)),
+  linear-gradient(transparent 30%,rgba(255,255,255,.18) 30%,rgba(255,255,255,.18) calc(30% + 2px),transparent calc(30% + 2px));pointer-events:none}
+.match h2{font-size:22px}
+.match .btn{background:var(--surface);color:var(--court);align-self:flex-start;position:relative;z-index:1}
+.match p{margin:0;font-size:14px;opacity:.92}
+.units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:440px){.units{grid-template-columns:1fr}}
+.unit{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0}
+.unit .code{font-family:var(--f-num);font-weight:700;color:var(--court)}
+.unit .nm{font-weight:700;font-size:15px}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--court)}
+.unit .st{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* play */
+.board{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;background:var(--court);color:var(--surface);border-radius:14px;padding:10px 14px}
+.side{display:flex;flex-direction:column;align-items:center;gap:0}
+.side .who{font-size:13px;opacity:.9}
+.side .pts{font-family:var(--f-num);font-size:40px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.vs{font-family:var(--f-num);opacity:.7}
+.prog{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.qunit{font-size:12px;font-weight:700;color:var(--cork);letter-spacing:.04em}
+.q{font-size:20px;font-weight:500;line-height:1.7;font-family:var(--f-body)}
+.q .m,.opt,.ex .m{font-family:var(--f-num)}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;font-family:var(--f-num)}
+.frac span:first-child{border-bottom:2px solid currentColor;padding:0 4px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:420px){.opts{grid-template-columns:1fr}}
+.opt{border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:14px 10px;font-size:18px;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.opt:hover:not(:disabled){border-color:var(--court)}
+.opt.right{border-color:var(--court);background:var(--court-soft);color:var(--court)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.fb.ok{background:var(--court-soft)}
+.fb.no{background:var(--bad-soft)}
+.fb .head{font-weight:700;font-family:var(--f-display);font-size:18px}
+.fb.ok .head{color:var(--court)} .fb.no .head{color:var(--bad)}
+.ex{white-space:pre-wrap;font-size:14.5px}
+
+/* result */
+.big{font-family:var(--f-display);font-size:26px;font-weight:700}
+.final{font-family:var(--f-num);font-size:48px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--court)}
+.wl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.wl li{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.ut{display:flex;flex-direction:column;gap:6px}
+.ut div{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:14px}
+.ut b{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+
+/* flashcards */
+.flash{perspective:1000px;min-height:220px}
+.fc{position:relative;width:100%;min-height:220px;border:0;padding:0;background:none;transform-style:preserve-3d;transition:transform .45s}
+.fc.flip{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:16px;padding:22px;display:flex;flex-direction:column;justify-content:center;gap:10px;backface-visibility:hidden;border:1px solid var(--line);text-align:left}
+.front{background:var(--surface)}
+.back{background:var(--court-soft);transform:rotateY(180deg)}
+.face .t{font-family:var(--f-display);font-size:22px;font-weight:700}
+.face .a{font-size:17px;white-space:pre-line;font-family:var(--f-body)}
+.face .hint{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.fc{transition:none}}
+</style>
+<style>
+.subj{display:inline-block;font-size:11.5px;font-weight:700;border-radius:6px;padding:0 7px;margin-right:4px}
+.s-geo{background:var(--court-soft);color:var(--court)}
+.s-his{background:var(--cork-soft);color:var(--cork)}
+.s-civ{background:var(--bad-soft);color:var(--bad)}
+.q{font-size:19px}
+.opt{font-size:16px;font-weight:500;font-family:var(--f-body);text-align:left;padding:12px 14px}
+.opts{grid-template-columns:1fr}
+.order{display:flex;flex-direction:column;gap:8px}
+.ev{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;text-align:left;font-size:16px}
+.ev .no{width:28px;height:28px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--f-num);font-weight:700}
+.ev.picked .no{background:var(--cork);border:0;color:#fff}
+.ev.right{border-color:var(--court);background:var(--court-soft)}
+.ev.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.ev .yr{font-family:var(--f-num);font-weight:700;color:var(--muted)}
+.ev:disabled{cursor:default}
+.flash,.fc{min-height:270px}
+.coach{border:2px dashed var(--cork);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.coach .ch{font-weight:700;font-family:var(--f-display);font-size:17px;color:var(--cork)}
+.coach .cc{display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--cork);padding-left:10px}
+.rembadge{color:var(--cork);font-weight:700}
+
+</style>
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+const app=document.getElementById('app');
+const UNITS=[
+  {s:'geo',sn:'地理',code:'地 L3',name:'中國的產業發展與地區差異'},
+  {s:'geo',sn:'地理',code:'地 L4',name:'中國的經濟發展與全球關聯'},
+  {s:'his',sn:'歷史',code:'歷 L3',name:'宋元時期的民族互動'},
+  {s:'his',sn:'歷史',code:'歷 L4',name:'明清帝國與天朝體制'},
+  {s:'civ',sn:'公民',code:'公 L3',name:'政府與權力分立'},
+  {s:'civ',sn:'公民',code:'公 L4',name:'我國的中央政府'},
+];
+/* 題庫：[單元, 題目, 正確答案, [錯誤選項], 解析] */
+const BANK=[
+ [0,'中國農業「北麥南稻」，大致以哪一條界線來區分？','秦嶺—淮河',['長城','黃河','黑河—騰衝線'],'秦嶺淮河線以北較乾冷，多旱田、種小麥；以南溫暖多雨，多水田、種稻米。'],
+ [0,'華南地區（珠江流域）氣候溫暖，稻米最多可以達到？','一年三穫',['一年一穫','兩年三穫','三年兩穫'],'越往南越溫暖，生長季越長：東北一年一穫、華北兩年三穫、長江流域一年兩穫、華南一年三穫。'],
+ [0,'新疆乾燥地區利用地下渠道引高山雪水灌溉的設施是？','坎兒井',['梯田','都江堰','大運河'],'坎兒井在地下引水，可以減少蒸發，是綠洲農業的重要設施。'],
+ [0,'青藏高原的畜牧業，最具代表性的牲畜是？','犛牛',['駱駝','乳牛','水牛'],'犛牛耐寒、適應高海拔，是青藏高原居民的重要牲畜。'],
+ [0,'1978 年起中國推動、讓經濟快速成長的政策是？','改革開放',['大躍進','文化大革命','一帶一路'],'鄧小平推動改革開放：引進外資、設經濟特區，中國經濟開始快速成長。'],
+ [0,'下列哪一個是中國最早設立的經濟特區？','深圳',['西安','重慶','拉薩'],'最早的經濟特區：深圳、珠海、汕頭、廈門，後來加上海南。都在東南沿海，靠近港澳台，方便吸引外資。'],
+ [0,'為了縮小東部和西部的差距，中國在 2000 年推動的政策是？','西部大開發',['振興東北','改革開放','上山下鄉'],'西部大開發的建設包括：西氣東輸、西電東送、青藏鐵路等。'],
+ [0,'把西部的天然氣用管線送到東部沿海，這項工程叫？','西氣東輸',['南水北調','西電東送','北煤南運'],'西部有能源，東部需要能源 → 西氣東輸（天然氣）、西電東送（電力）。'],
+ [0,'把長江流域的水引到缺水的華北，這項工程叫？','南水北調',['西氣東輸','三峽大壩','西電東送'],'南方水多、北方缺水，所以「南水北調」。'],
+ [0,'春節前後，大量在城市打工的民工返鄉，形成的人潮稱為？','春運',['春耕','移民潮','上山下鄉'],'民工從中西部農村到東部沿海城市打工，過年返鄉，形成世界上規模最大的人口移動之一。'],
+ [0,'中國經濟最發達的地區集中在哪裡？','東部沿海',['西北內陸','青藏高原','東北邊境'],'東部沿海交通便利、靠近海港、容易吸引外資，所以最發達；中西部相對落後，形成地區差異。'],
+ [0,'東北過去發展重工業，近年設備老舊、產業轉型困難，被稱為？','老工業基地',['經濟特區','世界工廠','綠洲農業區'],'東北有煤、鐵資源，早期發展重工業；後來產業老化，中國推出「振興東北」政策。'],
+ [0,'長江三角洲經濟區的核心城市是？','上海',['廣州','北京','重慶'],'沿海三大經濟圈（由北到南）：環渤海（北京、天津）、長三角（上海）、珠三角（廣州、深圳、香港）。'],
+ [0,'位於珠江出海口、是中國重要國際商港的城市是？','廣州',['深圳','上海','北京'],'廣州在珠江口「裡面一點」，自古就是大商港。深圳則是「貼著香港」的經濟特區。',1],
+ [0,'1990 年代因都市擴張設立「浦東新區」的城市是？','上海',['深圳','廣州','北京'],'上海＝長江出海口＋浦東新區。看到「長江」「浦東」就選上海。',1],
+ [0,'掌控長江出海口、交通位置優越、工商業最發達的都市是？','上海',['廣州','深圳','北京'],'上海在長江出海口，是長三角經濟圈的核心。',1],
+ [0,'鄰近香港，40 年前是小漁村，後來成為最早的經濟特區之一，這個城市是？','深圳',['廣州','上海','廈門'],'深圳＝貼著香港＋小漁村變一線城市＋最早的經濟特區。',1],
+ [0,'有「中國矽谷」之稱的中關村，位於哪一個城市？','北京',['上海','深圳','廣州'],'北京：古都（紫禁城）＋政治中心＋中關村高科技。',1],
+ [0,'中關村位於沿海哪一個經濟圈？','環渤海經濟圈',['長三角經濟圈','珠三角經濟圈','東北老工業基地'],'中關村在北京，北京屬於最北邊的環渤海經濟圈。'],
+ [0,'中國沿海的三大經濟圈，由北到南依序是？','環渤海、長三角、珠三角',['長三角、環渤海、珠三角','珠三角、長三角、環渤海','環渤海、珠三角、長三角'],'北京天津（環渤海）→ 上海（長三角）→ 廣州深圳香港（珠三角）。'],
+ [0,'改革開放「初期」，中國工業以哪一種為發展主力？','輕工業（勞力密集）',['高科技產業','重工業','農業'],'初期靠便宜勞力做衣服、鞋子、玩具等輕工業，加工後出口。後來才慢慢升級成高科技。',1],
+ [0,'中國改革開放的方向是？','由東部沿海逐步往內陸開放',['由西部內陸往東部沿海開放','從東北開始往南開放','全國同時開放'],'先開放沿海（經濟特區），成功後再往內陸推，所以東部先發達。',1],
+ [0,'1980 年代中國的經濟特區，和臺灣民國 50 年代的哪一種設施最類似？','加工出口區',['科學園區','國家公園','農會'],'兩者都是：引進外資、利用便宜勞力、加工後外銷出口（勞力密集）。不是技術密集喔！',1],
+ [0,'1957 年通車、連接政治中心北京和南部廣州的重要鐵路是？','京廣鐵路',['青藏鐵路','京滬鐵路','蘭新鐵路'],'名字就是起點和終點：京（北京）＋廣（廣州）。青藏鐵路是 2006 年才通車，連到西藏拉薩。',1],
+ [0,'中國鐵路的分布特色是？','東密西疏',['西密東疏','南北一樣多','只分布在西部'],'鐵路分布受地形和人口影響：東部平原、人多 → 鐵路密；西部高山、高原、人少 → 鐵路疏。'],
+ [0,'西部大開發為了吸引更多產業投資，最應該先加強哪一項？','交通建設',['市場開發','獎勵生育','動力開發'],'西部最大的問題是位居內陸、交通不便。路通了，工廠和商品才進得來、出得去。',1],
+ [0,'下列哪一個現象最能反映中國「區域發展不均」？','春節數億人次的返鄉人潮',['北京出現沙塵暴','推動海上絲路計畫','南水北調工程'],'內陸窮、沿海富 → 內陸民工到沿海打工 → 過年一起返鄉。人潮就是發展不均的證據。',1],
+ [0,'中國四大經濟區中，早期重工業發展的重心是？','東北',['東部','中部','西部'],'四大經濟區：東部（最發達）、中部（糧食供應地）、西部（林木礦豐富但交通不便）、東北（早期重工業）。'],
+ [0,'中國四大經濟區中，主要糧食供應地、工資比東部低的是？','中部',['東部','東北','西部'],'中部有平原和大河，是重要糧倉；工資比東部低，吸引工廠移入。'],
+ [0,'中國四大經濟區中，林、木、礦產資源豐富，但位居內陸、交通不便的是？','西部',['東部','中部','東北'],'所以中國推動「西部大開發」，先做交通建設。'],
+ [0,'中國「東農西牧」的分布，主要受到什麼影響？','降水量多寡',['氣溫高低','人口密度','地勢高低'],'東部濕潤、雨多 → 農業；西部乾燥、雨少 → 畜牧。'],
+ [0,'近年中國沿海地區出現「缺工潮」，主要原因是？','內陸地區就業機會增加',['沿海工廠全部倒閉','沿海薪水大幅降低','內陸物價暴漲'],'西部大開發讓內陸也有工作，民工留在家鄉，沿海就缺工了。'],
+ [0,'全國性商品糧基地中，哪一區因平原廣大、農民用機械化方式耕作？','東北（東北平原）',['長江中下游','四川盆地','珠江三角洲'],'東北平原又大又平、地廣人稀，適合大型機械耕作。南方多是小塊水田，比較靠人力。',1],
+ [0,'地圖上標著頤和園、故宮、天壇、中關村，這是哪一個城市？','北京',['上海','天津','廣州'],'讀圖題先找圖上的關鍵字：故宮、天壇、頤和園、中關村，全都在北京。',1],
+ [0,'從市中心向外建環狀道路，從二環一路建到七環的城市是？','北京',['上海','廣州','深圳'],'北京以市中心（故宮）為中點，一圈一圈往外蓋環狀道路。',1],
+ [0,'在上海外灘（黃浦江西岸的舊市區）拍對岸的東方明珠，是往哪個方向拍？','往東方拍攝',['往西方拍攝','往南方拍攝','往北方拍攝'],'「浦東」就是黃浦江的東邊！人站在西岸的外灘，看向對岸的浦東新區 → 往東拍。',1],
+ [0,'上海「浦東新區」的名字是怎麼來的？','位在黃浦江的東岸',['位在長江的東邊','位在上海的東北角','面向東海'],'浦東＝黃浦江的東邊；浦西＝黃浦江的西邊（舊市區、外灘）。'],
+ [0,'鴻海 2010 年以後新設的工廠多在內陸，主要考量的是？','平均工資低廉',['海運出口便利','工商業發達','高科技產業重鎮'],'沿海工資、地價變貴，所以往內陸找便宜的勞力。內陸沒有海港，不可能是因為海運方便喔！',1],
+ [0,'圖上「2010 年以後設廠」的符號大多出現在內陸，代表工廠往哪裡移動？','由沿海往內陸',['由內陸往沿海','全部移到東北','全部移到國外'],'看圖例：星星是 2010 年以前（多在沿海），三角形是 2010 年以後（多在內陸）→ 沿海往內陸。',1],
+ [1,'中國因勞力和土地便宜，吸引外國企業來設廠，因此被稱為？','世界工廠',['世界糧倉','世界銀行','世界花園'],'大量工廠把產品做好再出口到全世界，所以叫「世界工廠」。'],
+ [1,'中國在哪一年加入世界貿易組織（WTO）？','2001 年',['1978 年','1997 年','2013 年'],'2001 年加入 WTO 之後，中國和世界的貿易關係更緊密，出口大幅成長。'],
+ [1,'中國在 2013 年提出、連結亞洲、歐洲、非洲的經濟合作計畫是？','一帶一路',['西部大開發','改革開放','南水北調'],'「一帶」是陸上的絲綢之路經濟帶，「一路」是海上絲綢之路。'],
+ [1,'中國工資逐漸上漲後，許多勞力密集的工廠移到哪裡？','東南亞（例如越南）',['西歐','美國','日本'],'成本上升後，工廠移往工資更低的東南亞、南亞；中國則推動產業升級。'],
+ [1,'中國人民收入提高、消費力變強，從「世界工廠」又被稱為？','世界市場',['世界農場','世界礦場','世界花園'],'人口多、購買力提高，各國都想把商品賣進中國，所以稱為「世界市場」。'],
+ [1,'中國工業快速發展，最常見的環境問題是？','空氣汙染（霧霾）',['海平面下降','森林大幅增加','臭氧層完全恢復'],'工廠和燃煤排放造成霧霾，還有水汙染、沙塵暴等問題。'],
+ [1,'許多台灣企業到中國設廠，主要原因是？','勞力和土地成本低、語言相通',['天氣比較涼爽','稅比台灣高','完全沒有競爭對手'],'成本低加上語言文化相近，所以很多台商到中國投資。'],
+ [1,'2018 年起美國對中國商品加徵關稅，雙方互相報復，這稱為？','美中貿易戰',['冷戰','一帶一路','改革開放'],'貿易戰讓許多企業調整供應鏈，把工廠移往東南亞等地。'],
+ [1,'中國目前的經濟規模（GDP）在全世界排第幾？','第二',['第一','第五','第十'],'中國是世界第二大經濟體，僅次於美國。'],
+ [1,'中國推動產業升級，希望從「代工製造」走向？','高科技和自有品牌',['只種糧食','回到手工業','停止出口'],'提高產品價值，不再只靠便宜勞力。'],
+ [2,'宋太祖趙匡胤用什麼方式收回將領的兵權？','杯酒釋兵權',['陳橋兵變','澶淵之盟','靖康之難'],'陳橋兵變是趙匡胤當上皇帝的方式；當皇帝後再用「杯酒釋兵權」收回兵權。兩個很容易搞混！'],
+ [2,'宋朝「重文輕武」，造成什麼影響？','國防力量較弱，常受北方民族威脅',['武將不斷造反','文化發展衰退','領土大幅擴張'],'宋朝怕武將造反，所以重用文官、削弱武將，結果國防積弱。'],
+ [2,'北宋和遼（契丹）訂約，宋每年送遼「歲幣」，這個和約是？','澶淵之盟',['南京條約','尼布楚條約','馬關條約'],'1004 年澶淵之盟：宋每年給遼銀和絹，換取和平。'],
+ [2,'建立西夏的民族是？','党項',['契丹','女真','蒙古'],'口訣：遼＝契丹、西夏＝党項、金＝女真、元＝蒙古。'],
+ [2,'滅亡北宋的民族政權是？','金（女真）',['遼（契丹）','西夏（党項）','元（蒙古）'],'1127 年靖康之難，金攻陷汴京，北宋滅亡，宋室南遷建立南宋。'],
+ [2,'北宋時四川出現世界最早的紙幣，稱為？','交子',['銅錢','銀元','大明寶鈔'],'宋代商業繁榮，攜帶大量銅錢不方便，所以出現紙幣「交子」。'],
+ [2,'宋代設立、負責管理海外貿易的機構是？','市舶司',['理藩院','軍機處','錦衣衛'],'宋代海外貿易興盛，泉州、廣州都是重要港口，由市舶司管理。'],
+ [2,'宋代發明活字印刷術的是？','畢昇',['蔡倫','鄭和','朱熹'],'畢昇發明活字印刷；蔡倫是東漢改良造紙的人。'],
+ [2,'統一蒙古各部、被尊為「成吉思汗」的是？','鐵木真',['忽必烈','努爾哈赤','朱元璋'],'1206 年鐵木真統一蒙古，稱成吉思汗。他的孫子忽必烈後來建立元朝。'],
+ [2,'建立元朝、滅亡南宋的是？','忽必烈',['成吉思汗','宋太祖','皇太極'],'1271 年忽必烈定國號為元，1279 年滅南宋，統一中國。'],
+ [2,'元朝把人民分成四等，地位最低的是？','南人',['蒙古人','色目人','漢人'],'口訣「蒙色漢南」：蒙古人＞色目人（西域各族）＞漢人（原金國地區）＞南人（原南宋地區）。'],
+ [2,'元朝在地方設立、影響到今天中國省制的制度是？','行省制度',['郡縣制度','封建制度','改土歸流'],'元朝領土廣大，設「行省」管理地方，是今天「省」的由來。'],
+ [2,'元朝時來到中國，寫下遊記介紹東方的義大利人是？','馬可波羅',['哥倫布','利瑪竇','馬戛爾尼'],'《馬可波羅遊記》讓歐洲人嚮往東方。利瑪竇是明朝末年的傳教士，馬戛爾尼是清朝時的英國使節。'],
+ [3,'明朝的開國皇帝是？','朱元璋（明太祖）',['朱棣（明成祖）','趙匡胤（宋太祖）','努爾哈赤'],'1368 年朱元璋建立明朝，推翻元朝。'],
+ [3,'明太祖為了強化皇帝的權力，廢除了什麼？','宰相',['科舉','六部','軍隊'],'廢宰相後，皇帝直接管理六部，君權大大提高。'],
+ [3,'明成祖派誰率領船隊七次下西洋？','鄭和',['馬可波羅','張騫','施琅'],'1405～1433 年鄭和七次下西洋，宣揚國威、招徠各國朝貢，最遠到達非洲東岸。'],
+ [3,'明朝為了防止倭寇，禁止人民私自出海貿易，這稱為？','海禁',['一口通商','改土歸流','杯酒釋兵權'],'倭寇在沿海搶劫，明朝實施海禁；但也限制了民間的海外貿易。'],
+ [3,'中國皇帝自認是天下中心，周邊國家要來朝貢、接受冊封，這種觀念稱為？','天朝體制（朝貢體制）',['三權分立','封建制度','行省制度'],'天朝體制：中國是「天朝上國」，其他國家來朝貢，皇帝冊封他們的國王。'],
+ [3,'清軍在哪一年入關，進入北京統治中國？','1644 年',['1368 年','1683 年','1911 年'],'1644 年明朝滅亡，清軍入關。1368 是明朝建立，1683 是台灣納入清朝。'],
+ [3,'康熙時派施琅攻台，台灣納入清朝版圖是在哪一年？','1683 年',['1644 年','1661 年','1895 年'],'1661 年鄭成功來台，1683 年清朝攻台，台灣納入清朝版圖。'],
+ [3,'雍正設立、協助皇帝處理軍政機密的機構是？','軍機處',['錦衣衛','市舶司','理藩院'],'軍機處讓皇帝更快、更祕密地處理國家大事，君權更集中。'],
+ [3,'清朝管理蒙古、西藏等藩部事務的機構是？','理藩院',['軍機處','市舶司','六部'],'清朝對藩部採取比較彈性的管理，由理藩院負責。'],
+ [3,'乾隆時規定西方商人只能在哪裡通商？','廣州',['上海','泉州','天津'],'1757 年起「廣州一口通商」，外商必須透過「公行（十三行）」做生意。'],
+ [3,'1793 年英國派誰來中國，要求擴大通商卻被乾隆拒絕？','馬戛爾尼',['馬可波羅','利瑪竇','鄭和'],'雙方還發生要不要下跪叩頭的禮儀之爭。乾隆認為天朝物產豐富、不需要外國貨，這就是天朝心態。'],
+ [3,'清朝因為文章內容而懲罰讀書人，以控制思想，稱為？','文字獄',['焚書坑儒','科舉','杯酒釋兵權'],'清朝用文字獄控制思想，讀書人不敢批評朝廷。'],
+ [3,'清朝在西南少數民族地區，把土司改成中央派官治理，稱為？','改土歸流',['行省制度','海禁','一口通商'],'雍正時推行改土歸流，加強中央對西南地區的控制。'],
+ [3,'康熙、雍正、乾隆三朝國力強盛，被稱為？','康雍乾盛世',['貞觀之治','文景之治','開元之治'],'這三位皇帝統治期間，清朝領土廣大、國力強盛。'],
+ [4,'主張把國家權力分成行政、立法、司法三權，互相制衡的思想家是？','孟德斯鳩',['孫中山','盧梭','孔子'],'法國的孟德斯鳩提出三權分立；孫中山則提出五權分立。'],
+ [4,'「權力分立」最主要的目的是？','避免權力集中，保障人民權利',['讓政府權力更大','減少選舉次數','讓總統決定所有事'],'權力分散、互相監督，就不容易出現獨裁。'],
+ [4,'我國中央政府採取孫中山主張的幾權分立？','五權分立',['三權分立','四權分立','六權分立'],'口訣「行立司考監」：行政院、立法院、司法院、考試院、監察院。'],
+ [4,'美國總統由人民選出、內閣對總統負責，這種制度是？','總統制',['內閣制','君主專制','五權憲法'],'代表國家：美國＝總統制、英國＝內閣制。'],
+ [4,'英國由國會多數黨組成內閣、首相掌握行政權，這種制度是？','內閣制',['總統制','君主專制','五權憲法'],'英國國王是虛位元首，真正的行政權在首相和內閣。'],
+ [4,'負責制定法律的權力是？','立法權',['行政權','司法權','監察權'],'立法＝制定法律；行政＝執行法律；司法＝審判、解釋法律。'],
+ [4,'負責審判案件、解釋法律的權力是？','司法權',['行政權','立法權','考試權'],'司法權由法院行使，要獨立審判、不受干涉。'],
+ [4,'全國一致性質的事歸中央、因地制宜的事歸地方，我國憲法這種劃分方式叫？','均權制度',['中央集權','地方分權','君主專制'],'例如國防、外交歸中央；地方的公園、垃圾清運歸地方。'],
+ [4,'政府的權力受憲法限制、必須依法行事，這稱為？','有限政府',['萬能政府','專制政府','無政府狀態'],'民主國家的政府是有限政府，權力來自人民，也受到憲法約束。'],
+ [4,'下列何者是「權力制衡」的例子？','立法院審查行政院提出的預算',['總統自己決定所有法律','法院聽從總統命令判案','警察自己制定法律'],'行政院要花錢，必須經過立法院審查同意，這就是互相制衡。'],
+ [4,'政府最基本的功能是？','維護國家安全與社會秩序',['決定人民信什麼宗教','替人民選擇職業','規定人民的興趣'],'政府的功能：維護安全與秩序、提供公共服務、保障人民權利、促進經濟發展。'],
+ [4,'政府興建道路、學校、醫院，屬於哪一種功能？','提供公共服務',['維護國家安全','審判案件','制定憲法'],'交通、教育、醫療這些大家都需要、但個人難以自己完成的事，由政府提供，就是公共服務。'],
+ [4,'民主國家中，政府的權力來自哪裡？','人民',['總統','軍隊','外國'],'主權在民：人民透過選舉把權力交給政府，政府也要接受人民監督。'],
+ [4,'如果國家權力全部集中在一個人手上，最可能發生什麼問題？','濫用權力，侵害人民權利',['政府效率太低','人民太自由','選舉次數太多'],'這就是為什麼要權力分立：把權力分開，互相監督，避免濫權。'],
+ [4,'孟德斯鳩提出三權分立的著作是？','《論法的精神》',['《國富論》','《社會契約論》','《三民主義》'],'孟德斯鳩是法國思想家，《論法的精神》提出行政、立法、司法三權分立。'],
+ [4,'「制衡」的意思是？','各權力機關互相監督、牽制',['一個機關管所有的事','只有總統能做決定','各機關之間互不往來'],'分權之後還要「制衡」，才能真正防止任何一個機關濫權。'],
+ [4,'行政權的主要工作是？','執行法律、推動政策',['制定法律','審判案件','解釋憲法'],'記法：立法＝訂規則、行政＝照規則做事、司法＝判斷誰違反規則。'],
+ [4,'西方三權分立國家的「監察權」，通常由哪一個機關行使？','國會（立法機關）',['法院','總統','警察'],'孫中山把考試權從行政權獨立出來、監察權從立法權獨立出來，所以我國變成五權。'],
+ [4,'孫中山把哪一種權力從「行政權」中獨立出來？','考試權',['監察權','司法權','立法權'],'考試權原本屬於行政權；監察權原本屬於立法權。兩個獨立出來，三權＋2＝五權。'],
+ [4,'下列哪一項是「地方政府」負責的事務？','垃圾清運',['國防','外交','發行貨幣'],'均權制度：因地制宜的事歸地方，例如垃圾清運、公園、路燈。'],
+ [4,'下列哪一項是「中央政府」負責的事務？','外交',['垃圾清運','社區公園維護','路燈修繕'],'均權制度：全國要一致的事歸中央，例如國防、外交、貨幣。'],
+ [4,'民主政府要為施政成敗負責，並接受人民監督，稱為？','責任政府',['萬能政府','專制政府','無限政府'],'民主政府的特色：有限政府（受憲法限制）、責任政府（對人民負責）、依法行政。'],
+ [4,'政府做事必須依照法律規定，稱為？','依法行政',['人治','君權神授','專制統治'],'政府不能想怎樣就怎樣，所有措施都要有法律依據。'],
+ [4,'法官審判案件，不受總統或行政院干涉，稱為？','司法獨立（獨立審判）',['行政中立','議會政治','權力集中'],'司法獨立才能公平審判，保障人民權利。'],
+ [4,'內閣制國家中，內閣要對誰負責？','國會',['國王','法院','地方政府'],'內閣制：國會可以對內閣提出不信任案，首相也可以解散國會，互相制衡。'],
+ [5,'我國總統由誰選出？','人民直接選舉',['立法院','國民大會','行政院'],'1996 年第一次總統直選。'],
+ [5,'我國總統任期幾年？最多可以做幾任？','4 年，連選得連任一次',['6 年，不限次數','4 年，不限次數','5 年，只能做一任'],'總統任期 4 年，連選得連任一次，所以最多 8 年。'],
+ [5,'我國最高行政機關是？','行政院',['總統府','立法院','監察院'],'行政院下面有各部會，例如教育部、國防部。'],
+ [5,'行政院院長怎麼產生？','由總統直接任命',['人民選舉','立法院選出','總統提名、立法院同意'],'行政院長由總統任命，不需要立法院同意。'],
+ [5,'行政院要對哪一個機關負責？','立法院',['總統','司法院','監察院'],'立法院可以質詢行政院，也可以提出不信任案。'],
+ [5,'立法院最主要的職權是？','議決法律案和預算案',['審判案件','舉辦國家考試','彈劾公務員'],'法律和預算都要經過立法院通過。'],
+ [5,'立法委員任期幾年？','4 年',['3 年','6 年','8 年'],'立法委員共 113 席，任期 4 年。'],
+ [5,'負責解釋憲法的是？','司法院大法官',['立法院','行政院','考試院'],'大法官共 15 位，任期 8 年，透過憲法法庭解釋憲法。'],
+ [5,'公務人員考試由哪一個機關負責？','考試院',['行政院','教育部','監察院'],'考試院負責公務人員的考選、任用（銓敘）等事務。'],
+ [5,'對違法失職的公務員提出彈劾的是？','監察院',['司法院','立法院','考試院'],'監察院的職權：彈劾、糾舉、糾正、審計。'],
+ [5,'大法官、考試委員、監察委員是怎麼產生的？','總統提名、立法院同意',['人民選舉','行政院長任命','各院自己選出'],'這三種都是「總統提名、立法院同意」。注意：行政院長不需要立法院同意！'],
+ [5,'統率全國陸海空軍的是？','總統',['行政院長','國防部長','立法院長'],'總統是三軍統帥。'],
+ [5,'立法院通過對行政院長的不信任案後，行政院長可以呈請總統做什麼？','解散立法院',['解散司法院','罷免總統','廢除法律'],'不信任案通過，院長要辭職，同時可以呈請總統解散立法院，讓人民重新選立委。'],
+];
+const EVENTS=[
+ ['宋太祖建立宋朝',960],['宋遼簽訂澶淵之盟',1004],['靖康之難，北宋滅亡',1127],['成吉思汗統一蒙古',1206],
+ ['忽必烈定國號為元',1271],['元朝滅南宋',1279],['朱元璋建立明朝',1368],['鄭和第一次下西洋',1405],
+ ['清軍入關',1644],['台灣納入清朝版圖',1683],['廣州一口通商',1757],['英國馬戛爾尼使節團來華',1793],
+];
+const CARDS=[
+ [0,'北麥南稻','以「秦嶺—淮河」為界\n北：旱田、小麥　南：水田、稻米'],
+ [0,'稻作熟制（越往南越多穫）','東北 一年一穫\n華北 兩年三穫\n長江流域 一年兩穫\n華南 一年三穫'],
+ [0,'改革開放','1978 年 鄧小平\n經濟特區：深圳、珠海、汕頭、廈門、海南'],
+ [0,'縮小東西差距的建設','西部大開發（2000）\n西氣東輸、西電東送、南水北調、青藏鐵路'],
+ [0,'沿海三大經濟圈（北→南）','環渤海：北京、天津\n長三角：上海\n珠三角：廣州、深圳、香港'],
+ [0,'四大城市怎麼分？','北京：古都紫禁城、政治中心、中關村（中國矽谷）\n上海：長江出海口、浦東新區\n廣州：珠江出海口、國際商港\n深圳：貼著香港、小漁村變最早經濟特區'],
+ [0,'地圖口訣','北京在最上面\n上海在中間的長江口\n廣州、深圳在最下面\n深圳貼著香港，廣州在珠江口裡面一點'],
+ [0,'四大經濟區','東部：最發達\n中部：糧食供應地、工資較低\n西部：林木礦豐富，但交通不便\n東北：早期重工業重心（東北振興）'],
+ [0,'改革開放的特色','由東部沿海 → 往內陸開放\n初期：輕工業、勞力密集、加工出口\n經濟特區 ≈ 臺灣的加工出口區'],
+ [0,'區域發展不均的證據','內陸窮、沿海富\n→ 民工到沿海打工\n→ 春節數億人次返鄉人潮'],
+ [0,'中國鐵路','東密西疏（受地形、人口影響）\n京廣鐵路：北京 ↔ 廣州（1957）\n青藏鐵路：到西藏拉薩（2006）'],
+ [0,'西部大開發先做什麼？','交通建設！\n西部問題是位居內陸、交通不便\n路通了，投資才進得來'],
+ [0,'讀圖題三步驟','1. 先看圖例：符號、顏色代表什麼\n2. 找圖上的關鍵字：地名、景點、河流\n3. 回到題目找線索，再對照選項'],
+ [0,'浦東在哪裡？','浦東＝黃浦江的「東」邊\n外灘（舊市區）在西岸\n站在外灘往東拍 → 東方明珠、浦東新區'],
+ [0,'北京的地圖線索','故宮（紫禁城）、天壇、頤和園、中關村\n環狀道路從二環建到七環'],
+ [0,'工廠為什麼往內陸搬？','沿海工資、地價上漲\n→ 往內陸找便宜勞力（工資低廉）\n內陸沒有海港，所以不是因為海運'],
+ [0,'東北的農業','平原廣大、地廣人稀\n→ 大型機械化耕作\n是重要的全國性商品糧基地'],
+ [1,'中國角色的轉變','世界工廠（勞力、土地便宜）\n→ 世界市場（人民購買力提高）'],
+ [1,'中國和世界的連結','2001 加入 WTO\n2013 一帶一路\n2018 美中貿易戰 → 工廠移往東南亞'],
+ [2,'宋太祖三件事','陳橋兵變（當皇帝）\n杯酒釋兵權（收兵權）\n重文輕武 → 國防弱'],
+ [2,'宋朝的北方鄰居','遼＝契丹（澶淵之盟 1004）\n西夏＝党項\n金＝女真（1127 滅北宋）'],
+ [2,'宋代經濟與科技','交子（最早紙幣）\n市舶司、泉州港\n畢昇 活字印刷'],
+ [2,'元朝重點','1206 成吉思汗　1271 忽必烈建元\n四等人「蒙色漢南」\n行省制度、馬可波羅'],
+ [3,'明朝重點','1368 朱元璋\n廢宰相（君權提高）\n鄭和下西洋、海禁防倭寇'],
+ [3,'清朝重點','1644 入關　1683 台灣入版圖\n軍機處、理藩院、改土歸流、文字獄'],
+ [3,'天朝體制','中國是天下中心\n周邊國家朝貢、皇帝冊封\n廣州一口通商（1757）、拒絕馬戛爾尼（1793）'],
+ [4,'政府的四大功能','1. 維護國家安全與社會秩序\n2. 提供公共服務（交通、教育、醫療）\n3. 保障人民權利\n4. 促進經濟發展'],
+ [4,'為什麼要權力分立？','權力集中容易濫用、侵害人民權利\n→ 把權力分開、互相監督\n→ 保障人民權利'],
+ [4,'三權分立','孟德斯鳩《論法的精神》\n行政：執行法律\n立法：制定法律\n司法：審判、解釋法律'],
+ [4,'制衡的例子','立法院審查行政院的預算\n法院獨立審判，不受總統干涉\n分權之後還要制衡，才能防止濫權'],
+ [4,'五權分立怎麼來？','孫中山：三權＋2\n考試權 ← 從行政權獨立\n監察權 ← 從立法權獨立\n口訣「行立司考監」'],
+ [4,'總統制 vs 內閣制','總統制：美國，總統掌行政權\n內閣制：英國，首相和內閣掌行政權，對國會負責'],
+ [4,'民主政府的特色','有限政府：權力受憲法限制\n責任政府：對人民負責、接受監督\n依法行政：做事要依照法律'],
+ [4,'均權制度','全國一致的事 → 中央（國防、外交、貨幣）\n因地制宜的事 → 地方（垃圾清運、公園、路燈）'],
+ [5,'總統','人民直選、4 年、連任一次\n三軍統帥\n任命行政院長（不用立法院同意）'],
+ [5,'行政院 vs 立法院','行政院：最高行政機關，對立法院負責\n立法院：113 席、4 年，通過法律和預算\n不信任案 ↔ 解散立法院'],
+ [5,'司法、考試、監察','司法院：大法官 15 人，解釋憲法\n考試院：公務員考試\n監察院：彈劾、糾舉、糾正、審計'],
+];
+
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[R(0,a.length-1)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tag=u=>`<span class="subj s-${UNITS[u].s}">${UNITS[u].sn}</span>`;
+
+let ST={u:UNITS.map(()=>[0,0]),t:[0,0],wins:0,games:0};
+try{const v=JSON.parse(localStorage.getItem('kc-social')||'null');if(v&&v.u&&v.u.length===UNITS.length)ST={...ST,...v}}catch(e){}
+function saveST(){try{localStorage.setItem('kc-social',JSON.stringify(ST))}catch(e){}}
+
+let G=null;
+const CHEER=['殺球得分！','漂亮的網前小球！','反手過渡，穩！','跳殺成功！','這球太乾淨了！','平抽快攻得分！'];
+const OOPS=['被對手抓到空檔…','這球掛網了…','出界了，看一下解析','被殺球了，下一球拿回來！'];
+
+function home(){
+  G=null;
+  const [tt,tc]=ST.t;
+  app.innerHTML=`
+  <header style="display:flex;flex-direction:column;gap:4px">
+    <a href="./" style="color:var(--court);font-size:14px;font-weight:700;text-decoration:none">← 回讀書系統</a>
+    <span class="label">第二次段考 · 社會 · 康軒版</span>
+    <h1>楷宸社會闖關</h1>
+    <div class="small">地理、歷史、公民各兩課，共 ${BANK.length} 題。可以六課混合對戰，也可以只複習一課。選項順序每次都會打亂。</div>
+  </header>
+  <section class="match">
+    <span class="label" style="color:inherit;opacity:.85">比賽模式 · 六課混合</span>
+    <h2>對戰「錯題魔王」</h2>
+    <p>答對你得分，答錯對手得分。先拿到 11 分獲勝，10 比 10 之後要領先 2 分（最多打到 15 分）。</p>
+    <button class="btn" id="startMatch">開打</button>
+    <div style="font-size:13px;opacity:.9;position:relative;z-index:1">戰績：${ST.wins} 勝 / ${ST.games} 場</div>
+  </section>
+  <section class="card">
+    <h2>歷史時間軸</h2>
+    <div class="small">從宋到清，把 4 件大事照發生順序點出來。歷史題最常考「先後順序」。${tt?`　答對率 ${Math.round(tc/tt*100)}%`:''}</div>
+    <button class="btn cork" id="startOrder" style="align-self:flex-start">開始排序（5 回合）</button>
+  </section>
+  <section class="card">
+    <h2>單課複習</h2>
+    <div class="units">${UNITS.map((u,i)=>{const[t,c]=ST.u[i],pct=t?Math.round(c/t*100):0;
+      return`<button class="unit" data-unit="${i}"><span>${tag(i)}<span class="code">${u.code.slice(2)}</span></span><span class="nm">${u.name}</span>
+        <span class="meter"><i style="width:${pct}%"></i></span><span class="st">${t?`答對率 ${pct}%（${c}/${t}）`:'還沒練過'}</span></button>`}).join('')}</div>
+    <div class="small">點一課：重點整理、這課的重點卡、這課的測驗都在裡面。答對率最低的那一課最該先讀。</div>
+  </section>
+  <section class="card">
+    <h2>全部重點卡</h2>
+    <div class="small">六課混合，共 ${CARDS.length} 張重點和口訣卡，例如「蒙色漢南」「行立司考監」。點卡片翻面，不熟的會再出現。</div>
+    <button class="btn cork" id="startCards" style="align-self:flex-start">開始翻卡</button>
+  </section>`;
+  document.getElementById('startMatch').onclick=()=>start('match');
+  document.getElementById('startOrder').onclick=order;
+  document.getElementById('startCards').onclick=()=>cards();
+  app.querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>hub(+b.dataset.unit));
+  window.scrollTo(0,0);
+}
+function hub(u){
+  G=null;const U=UNITS[u],cs=CARDS.filter(c=>c[0]===u),n=BANK.filter(b=>b[0]===u).length,nf=BANK.filter(b=>b[0]===u&&b[5]).length,[t,c]=ST.u[u];
+  app.innerHTML=`
+  <div class="prog"><button class="btn ghost" id="quit">← 回首頁</button><span class="small">${t?`答對率 ${Math.round(c/t*100)}%`:'還沒練過'}</span></div>
+  <header style="display:flex;flex-direction:column;gap:4px">
+    <span class="label">${U.sn} 第 ${U.code.slice(3)} 課 · 單課複習</span>
+    <h1 style="font-size:26px">${U.name}</h1>
+    <div class="small">建議順序：① 讀重點 → ② 翻卡自我檢查 → ③ 測驗。</div>
+  </header>
+  <section class="card">
+    <h2>① 重點整理</h2>
+    <ol class="wl" style="list-style:none">${cs.map(x=>`<li><b>${esc(x[1])}</b><div class="ex">${esc(x[2])}</div></li>`).join('')}</ol>
+  </section>
+  <section class="card">
+    <h2>② 重點卡（${cs.length} 張）</h2>
+    <div class="small">只出這一課的卡。先在心裡說出答案再翻面，不熟的會再出現。</div>
+    <button class="btn cork" id="hc" style="align-self:flex-start">開始翻卡</button>
+  </section>
+  <section class="card">
+    <h2>③ 測驗</h2>
+    <div class="small">這一課共 ${n} 題，選項順序每次打亂。</div>
+    <div class="row"><button class="btn pri" id="h10">隨機 10 題</button><button class="btn ghost" id="hall">全部 ${n} 題一次考完</button></div>
+  </section>
+  ${nf?`<section class="card" style="border-color:var(--bad)">
+    <h2>楷宸的錯題重練（${nf} 題）</h2>
+    <div class="small">從自修上寫錯的題目整理出來的觀念，換個問法再考一次。全對才算真的補起來。</div>
+    <button class="btn cork" id="hmk" style="align-self:flex-start">開始重練</button>
+  </section>`:''}`;
+  document.getElementById('quit').onclick=home;
+  document.getElementById('hc').onclick=()=>cards(u);
+  document.getElementById('h10').onclick=()=>start('unit',u,10);
+  document.getElementById('hall').onclick=()=>start('unit',u,n);
+  const hm=document.getElementById('hmk');if(hm)hm.onclick=()=>start('unit',u,nf,true);
+  window.scrollTo(0,0);
+}
+
+function start(mode,u,len,mk){
+  const pool=BANK.map((b,i)=>i).filter(i=>mode==='match'||(BANK[i][0]===u&&(!mk||BANK[i][5])));
+  G={mode,u,mk,len:Math.min(len||10,pool.length),me:0,op:0,n:0,hist:[],queue:shuffle(pool),rep:new Set(),seen:new Set()};
+  next();
+}
+function over(){if(G.mode==='unit')return G.n>=G.len;const a=G.me,b=G.op;return a===15||b===15||((a>=11||b>=11)&&Math.abs(a-b)>=2)}
+function next(){
+  if(over())return result();
+  if(!G.queue.length)G.queue=shuffle(BANK.map((b,i)=>i).filter(i=>G.mode==='match'||(BANK[i][0]===G.u&&(!G.mk||BANK[i][5]))));
+  const bi=G.queue.shift(),again=G.seen.has(bi);G.seen.add(bi);
+  G.q=mkQ(bi);G.q.again=again;G.n++;G.done=false;G.tries=0;renderQ();
+}
+function mkQ(bi){const b=BANK[bi];return{bi,u:b[0],q:b[1],a:b[2],o:shuffle([b[2],...b[3]]),ex:b[4]}}
+const keyOf=a=>a.split('（')[0].split('，')[0].replace(/ 年$/,'');
+function cardsFor(q){const k=keyOf(q.a);return CARDS.filter(c=>c[0]===q.u&&(c[1]+c[2]).includes(k))}
+function remPool(q){const cs=cardsFor(q);if(!cs.length)return[];const txt=cs.map(c=>c[1]+c[2]).join(' ');
+  return BANK.map((b,i)=>i).filter(i=>i!==q.bi&&BANK[i][0]===q.u&&txt.includes(keyOf(BANK[i][2])))}
+function coach(q){const cs=cardsFor(q),pool=remPool(q);
+  return `<div class="coach"><div class="ch">🧑‍🏫 教練暫停：先把觀念弄懂</div>
+    ${cs.length?cs.map(c=>`<div class="cc"><b>${esc(c[1])}</b><div class="ex">${esc(c[2])}</div></div>`).join(''):`<div class="small">回課本找到這一段，用螢光筆畫起來，再看一次上面的解析。</div>`}
+    <div class="small">🔁 這題等一下會再考你一次${pool.length?'。也可以先打一球「同觀念」的補救球（不算分）':''}。</div></div>`}
+function remedial(){const base=G.q,pool=remPool(base);if(!pool.length)return next();G.tries=(G.tries||0)+1;
+  const q=mkQ(pick(pool));q.rem=true;q.base=base;G.q=q;G.done=false;renderQ();window.scrollTo(0,0)}
+function renderQ(){
+  const q=G.q,U=UNITS[q.u];
+  app.innerHTML=`
+  <div class="prog"><button class="btn ghost" id="quit">← 離開</button>
+    <span class="small">${q.rem?'<span class="rembadge">補救球 · 同觀念再試一次（不算分）</span>':(q.again?'<span class="rembadge">🔁 再來一次 · </span>':'')+(G.mode==='unit'?`第 ${G.n} / ${G.len} 題 · 答對 ${G.me}`:`第 ${G.n} 球`)}</span></div>
+  ${G.mode==='match'?`<div class="board" aria-label="比分"><div class="side"><span class="who">楷宸</span><span class="pts">${G.me}</span></div><span class="vs">:</span><div class="side"><span class="who">錯題魔王</span><span class="pts">${G.op}</span></div></div>`:''}
+  <section class="qcard">
+    <span class="qunit">${tag(q.u)}${U.code.slice(2)} ${U.name}</span>
+    <div class="q">${esc(q.q)}</div>
+    <div class="opts">${q.o.map((o,i)=>`<button class="opt" data-o="${i}">${esc(o)}</button>`).join('')}</div>
+    <div id="fb"></div>
+  </section>`;
+  document.getElementById('quit').onclick=home;
+  app.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>answer(+b.dataset.o));
+}
+function answer(i){
+  if(G.done)return;G.done=true;
+  const q=G.q,ch=q.o[i],ok=ch===q.a;
+  app.querySelectorAll('[data-o]').forEach((b,j)=>{b.disabled=true;if(q.o[j]===q.a)b.classList.add('right');else if(j===i)b.classList.add('wrong')});
+  const fb=document.getElementById('fb');
+  if(q.rem){
+    if(ok)G.fixed=(G.fixed||0)+1;
+    const more=!ok&&G.tries<3&&remPool(q.base).length>1;
+    if(!ok&&!G.rep.has(q.bi)&&!G.seen.has(q.bi)){G.rep.add(q.bi);G.queue.splice(Math.min(2,G.queue.length),0,q.bi);if(G.mode==='unit')G.len++}
+    fb.innerHTML=`<div class="fb ${ok?'ok':'no'}"><div class="head">${ok?'觀念補起來了！✅':'還差一點，再看一次解析'}</div>
+      ${ok?'':`<div>正確答案：<b>${esc(q.a)}</b></div>`}<div class="ex">${esc(q.ex)}</div>
+      <div class="row">${more?'<button class="btn cork" id="rem">再一球同觀念</button>':''}<button class="btn pri" id="nx">${over()?'看結果':(G.mode==='match'?'回到比賽，下一球':'下一題')}</button></div></div>`;
+  }else{
+    ST.u[q.u][0]++;if(ok)ST.u[q.u][1]++;saveST();
+    if(ok)G.me++;else G.op++;
+    G.hist.push({q,ch,ok});
+    if(G.mode==='match'){const p=app.querySelectorAll('.pts');p[0].textContent=G.me;p[1].textContent=G.op}
+    if(!ok&&!G.rep.has(q.bi)){G.rep.add(q.bi);G.queue.splice(Math.min(2,G.queue.length),0,q.bi);if(G.mode==='unit')G.len++}
+    const hasRem=!ok&&remPool(q).length>0;
+    fb.innerHTML=`<div class="fb ${ok?'ok':'no'}"><div class="head">${ok?(q.again?'這次答對了！記住了 ✅':pick(CHEER)):pick(OOPS)}</div>
+      ${ok?'':`<div>正確答案：<b>${esc(q.a)}</b></div>`}
+      <div class="ex">${esc(q.ex)}</div>
+      ${ok?`<button class="btn pri" id="nx" style="align-self:flex-start">${over()?'看結果':'下一題'}</button>`
+        :`${coach(q)}<div class="row">${hasRem?'<button class="btn cork" id="rem">打補救球</button>':''}<button class="btn ${hasRem?'ghost':'pri'}" id="nx">${over()?'看結果':(hasRem?'跳過，下一題':'下一題')}</button></div>`}</div>`;
+  }
+  document.getElementById('nx').onclick=next;
+  const rb=document.getElementById('rem');if(rb)rb.onclick=remedial;
+  fb.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function result(){
+  const h=G.hist,wrong=h.filter(x=>!x.ok),per=UNITS.map((u,i)=>{const a=h.filter(x=>x.q.u===i);return[a.length,a.filter(x=>x.ok).length]});
+  let title,sub;
+  if(G.mode==='match'){const win=G.me>G.op;ST.games++;if(win)ST.wins++;saveST();
+    title=win?'贏了！拿下這一局 🏸':'這局輸了，再戰一場！';sub=win?'錯題魔王被你打敗了。':'看完下面的錯題，下一場一定拿回來。'}
+  else{const r=G.me/G.len;title=r>=.9?'太強了！這課很穩':r>=.7?'不錯！再練一輪會更穩':'這課要再讀一次重點整理';sub=`${UNITS[G.u].sn} ${UNITS[G.u].code.slice(2)} ${UNITS[G.u].name}`}
+  const weak=per.map((p,i)=>[i,p[0]?p[1]/p[0]:1]).filter(x=>per[x[0]][0]).sort((a,b)=>a[1]-b[1])[0];
+  app.innerHTML=`
+  <section class="card" style="align-items:flex-start">
+    <span class="label">${G.mode==='match'?'比賽結束':'特訓結束'}</span>
+    <div class="big">${title}</div>
+    <div class="final">${G.mode==='match'?`${G.me} : ${G.op}`:`${G.me} / ${G.len}`}</div>
+    <div class="small">${esc(sub)}</div>
+    ${G.fixed?`<div class="small">補救球答對 ${G.fixed} 次，觀念有補起來 👍</div>`:''}
+    ${G.mode==='match'?`<div class="ut" style="width:100%">${UNITS.map((u,i)=>per[i][0]?`<div><span>${u.sn} ${u.code.slice(2)} ${u.name}</span><b>${per[i][1]} / ${per[i][0]}</b></div>`:'').join('')}</div>`:''}
+    <div class="row">
+      <button class="btn pri" id="again">${G.mode==='match'?'再打一場':'再考一次'}</button>${G.mode==='unit'?'<button class="btn cork" id="toHub">回這課的重點</button>':''}
+      ${G.mode==='match'&&weak&&weak[1]<1?`<button class="btn cork" id="weak">特訓最弱的 ${UNITS[weak[0]].sn}${UNITS[weak[0]].code.slice(2)}</button>`:''}
+      <button class="btn ghost" id="back">回首頁</button>
+    </div>
+  </section>
+  ${wrong.length?`<section class="card"><h2>這次的錯題（${wrong.length} 題）</h2>
+    <div class="small">建議抄進讀書系統的錯題本。</div>
+    <ul class="wl">${wrong.map(x=>`<li><span class="qunit">${tag(x.q.u)}${UNITS[x.q.u].code.slice(2)}</span><div>${esc(x.q.q)}</div>
+      <div class="small">你選：${esc(x.ch)}　正確：<b>${esc(x.q.a)}</b></div><div class="ex">${esc(x.q.ex)}</div></li>`).join('')}</ul></section>`
+    :`<section class="card"><h2>全對！</h2><div class="small">這次沒有錯題，保持這個手感。</div></section>`}`;
+  const mode=G.mode,u=G.u,len=G.len,mk=G.mk;
+  document.getElementById('again').onclick=()=>start(mode,u,len,mk);
+  const th=document.getElementById('toHub');if(th)th.onclick=()=>hub(u);
+  document.getElementById('back').onclick=home;
+  const w=document.getElementById('weak');if(w)w.onclick=()=>start('unit',weak[0]);
+  window.scrollTo(0,0);
+}
+
+/* ---------- 歷史時間軸 ---------- */
+function order(){
+  let round=0,score=0;
+  function play(){
+    if(round>=5){app.innerHTML=`<section class="card" style="align-items:flex-start"><span class="label">歷史時間軸</span>
+      <div class="big">${score>=4?'時間感很強！':'年代再多看幾次就會了'}</div><div class="final">${score} / 5</div>
+      <div class="small">建議搭配重點卡的「宋太祖」「元朝重點」「明朝重點」「清朝重點」一起記。</div>
+      <div class="row"><button class="btn pri" id="again">再玩一次</button><button class="btn ghost" id="back">回首頁</button></div></section>`;
+      document.getElementById('again').onclick=order;document.getElementById('back').onclick=home;return}
+    round++;
+    const evs=shuffle(EVENTS).slice(0,4),picked=[];
+    app.innerHTML=`
+    <div class="prog"><button class="btn ghost" id="quit">← 離開</button><span class="small">第 ${round} / 5 回合 · 答對 ${score}</span></div>
+    <section class="qcard">
+      <span class="qunit"><span class="subj s-his">歷史</span>時間軸</span>
+      <div class="q">從「最早」到「最晚」，依序點下面 4 件事</div>
+      <div class="order">${evs.map((e,i)=>`<button class="ev" data-e="${i}"><span class="no"></span><span>${esc(e[0])}</span><span class="yr"></span></button>`).join('')}</div>
+      <div id="fb"></div>
+    </section>`;
+    document.getElementById('quit').onclick=home;
+    const btns=[...app.querySelectorAll('[data-e]')];
+    btns.forEach(b=>b.onclick=()=>{const i=+b.dataset.e;
+      if(picked.includes(i)){if(picked[picked.length-1]===i){picked.pop();b.classList.remove('picked');b.querySelector('.no').textContent=''}return}
+      picked.push(i);b.classList.add('picked');b.querySelector('.no').textContent=picked.length;
+      if(picked.length===4)check();});
+    function check(){
+      const ok=picked.every((v,k)=>k===0||evs[picked[k-1]][1]<evs[v][1]);
+      ST.t[0]++;if(ok){ST.t[1]++;score++}saveST();
+      const sorted=evs.map((e,i)=>i).sort((a,b)=>evs[a][1]-evs[b][1]);
+      btns.forEach((b,i)=>{b.disabled=true;b.querySelector('.yr').textContent=evs[i][1];b.classList.add(sorted.indexOf(i)===picked.indexOf(i)?'right':'wrong')});
+      document.getElementById('fb').innerHTML=`<div class="fb ${ok?'ok':'no'}"><div class="head">${ok?pick(CHEER):'順序不太對，看一下年代'}</div>
+        <div class="ex">${sorted.map(i=>`${evs[i][1]}　${evs[i][0]}`).join('\n')}</div>
+        <button class="btn pri" id="nx" style="align-self:flex-start">${round>=5?'看結果':'下一回合'}</button></div>`;
+      document.getElementById('nx').onclick=play;
+    }
+  }
+  play();window.scrollTo(0,0);
+}
+
+/* ---------- 重點卡 ---------- */
+function cards(u){
+  const only=u!=null,ids=CARDS.map((c,i)=>i).filter(i=>!only||CARDS[i][0]===u),total=ids.length;
+  let deck=shuffle(ids),known=0,flipped=false;
+  function draw(){
+    if(!deck.length){app.innerHTML=`<section class="card" style="align-items:flex-start"><span class="label">重點卡</span><div class="big">全部記住了！</div>
+      <div class="small">${total} 張卡都過關。${only?'接著考這一課，看看有沒有真的記住。':'去打一場比賽，試試看有沒有真的記住。'}</div>
+      <div class="row"><button class="btn pri" id="toMatch">${only?'考這一課':'去比賽'}</button><button class="btn ghost" id="back">${only?'回這課':'回首頁'}</button></div></section>`;
+      document.getElementById('toMatch').onclick=()=>only?start('unit',u,10):start('match');document.getElementById('back').onclick=only?()=>hub(u):home;return}
+    const c=CARDS[deck[0]];flipped=false;
+    app.innerHTML=`
+    <div class="prog"><button class="btn ghost" id="quit">← 離開</button><span class="small">已記住 ${known} / ${total}</span></div>
+    <div class="flash"><button class="fc" id="fc" aria-label="翻面">
+      <div class="face front"><span class="qunit">${tag(c[0])}${UNITS[c[0]].code.slice(2)}</span><div class="t">${esc(c[1])}</div><div class="hint">先在心裡說出重點，再點一下翻面</div></div>
+      <div class="face back"><span class="qunit">${tag(c[0])}${UNITS[c[0]].code.slice(2)}</span><div class="a">${esc(c[2])}</div></div>
+    </button></div>
+    <div class="row" id="judge" style="visibility:hidden">
+      <button class="btn ghost" id="again">還不熟，等一下再考我</button>
+      <button class="btn pri" id="got">記住了</button>
+    </div>`;
+    document.getElementById('quit').onclick=only?()=>hub(u):home;
+    document.getElementById('fc').onclick=()=>{flipped=!flipped;document.getElementById('fc').classList.toggle('flip',flipped);document.getElementById('judge').style.visibility='visible'};
+    document.getElementById('got').onclick=()=>{deck.shift();known++;draw()};
+    document.getElementById('again').onclick=()=>{const x=deck.shift();deck.splice(Math.min(3,deck.length),0,x);draw()};
+  }
+  draw();window.scrollTo(0,0);
+}
+
+home();
+})();
+</script>
+</body>
+</html>
