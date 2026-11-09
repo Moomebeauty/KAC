@@ -549,7 +549,7 @@ setInterval(()=>{if(!T)render()},60e3);
 
 /* ---------- 雲端同步（Google 試算表） ---------- */
 // 把 Google Apps Script「網頁應用程式」的網址貼在下面引號裡，兩支手機就會同步
-const SCRIPT_URL='';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyQGiMZOIJCF3QhQRBT7sopa1FmZxdrnOWRfnwtoa3KAF4KCr-wi09On25ktdCR7xi8Gg/exec';
 let cloudOn=!!SCRIPT_URL,pending=0,firstPull=true;
 const OKMSG='已同步 ✓ 媽媽和楷宸看到的是同一份進度';
 function applySettings(v){S.exam=(v&&v.exam)||DEFAULT_EXAM;S.tests=((v&&v.tests)||DEFAULT_TESTS).map(t=>{const d=DEFAULT_TESTS.find(x=>x.start===t.start);return d?{...t,scope:{...d.scope,...(t.scope||{})},book:{...(d.book||{}),...(t.book||{})}}:t})}
