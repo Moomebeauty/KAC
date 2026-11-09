@@ -129,7 +129,9 @@ table.board-t{border-collapse:collapse;width:100%;font-size:13px}
 /* tabs */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
   padding:0 max(16px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(16px,env(safe-area-inset-left,0px))}
-.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tablink{padding:12px 0;font-weight:700;font-size:13px;color:var(--muted);border-top:3px solid transparent;text-align:center;text-decoration:none;display:block}
+.tablink:hover{color:var(--us)}
 .tab{padding:12px 0;font-weight:700;font-size:13px;color:var(--muted);border-top:3px solid transparent}
 .tab.on{color:var(--us);border-top-color:var(--us)}
 
@@ -287,6 +289,7 @@ textarea.inp{min-height:72px;resize:vertical}
   <button class="tab" data-tab="rep">📊 分析</button>
   <button class="tab" data-tab="note">🏸 練球筆記</button>
   <button class="tab" data-tab="his">📚 歷史</button>
+  <a class="tablink" href="study/">📖 讀書</a>
 </div></nav>
 <div id="toast" class="toast" hidden></div>
 <div id="modal" class="modal" hidden><div class="modal-box">
