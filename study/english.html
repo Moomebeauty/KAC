@@ -154,6 +154,7 @@ const UNITS=[
   {code:'L4',name:'I Want to Take a Working Holiday',sub:'to V 和 V-ing'},
   {code:'拼字',name:'V-ing 拼字挑戰',sub:'running、making、lying 怎麼拼'},
   {code:'L3 字尾',name:'運用字尾學字彙',sub:'-er / -or / -ful / -less / -ly / -ness'},
+  {code:'段考一',name:'第一次段考錯題重練',sub:'單字拼字、過去式、he / his、the'},
 ];
 const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const pick=a=>a[R(0,a.length-1)];
@@ -306,10 +307,34 @@ ${b.endsWith('y')?'y 結尾：y 改成 i 再加字尾！\n':''}${x==='ful'?'注�
 ${SUF.filter(z=>z[1]===x).map(z=>`${z[2]}：${z[3]}`).join('\n')}`}},
  ()=>{const[t,a,d,e]=pick(SUFS);return{q:en(t.replace('____',B)),a,o:shuffle([a,...d]),ex:e,card:SUFCARD[(SUF.find(z=>a.startsWith(z[2]))||[])[1]]}},
 ];
-const GEN=[L3,L4,L5,LW];
+const VOC=[['share','分享',['shere','shear','sheer']],['nobody','沒有人',['nothing','anybody','somebody']],['nothing','沒有東西',['nobody','something','anything']],
+ ['terrible','可怕的；很糟的',['terible','tarrible','terribel']],['guess','猜；猜測',['gess','guest','guass']],['children','孩子們',['childs','childrens','chilren']],
+ ['parents','父母',['patents','parants','perents']],['remember','記得',['remenber','rememder','remmber']],['finish','完成',['finsh','finnish','finich']],
+ ['circle','圓圈',['circel','cercle','sircle']],['happened','發生了（過去式）',['happend','happenned','hapened']]];
+const PAST=[['sell','sold',0],['tell','told',0],['buy','bought',0],['think','thought',0],['bring','brought',0],['teach','taught',0],['catch','caught',0],['see','saw',0],['take','took',0],['eat','ate',0],
+ ['go','went',0],['write','wrote',0],['run','ran',0],['break','broke',0],['cry','cried',1],['study','studied',1],['jog','jogged',1],['stop','stopped',1],['happen','happened',1],['need','needed',1],['look','looked',1],['visit','visited',1]];
+const PS=[['Andy needed money, so he ____ his car.','sell'],['Yesterday my mom ____ me a funny story.','tell'],['I ____ a new bag last Sunday.','buy'],['Kaichen ____ her racket to school yesterday.','bring'],['What ____ to Cindy? She looks sad.','happen'],['Mr. Lin ____ us English last year.','teach']];
+const pastWrong=(b,a)=>[b+'ed',b.endsWith('e')?b+'d':null,b,a+'ed',b.endsWith('y')?b+'ed':null,/[aeiou][^aeiouwy]$/.test(b)&&!/(.)\1$/.test(b)?b+b.slice(-1)+'ed':null,b+'s',b+'ing'].filter(x=>x&&x!==a);
+const L6=[
+ ()=>{const[w,z,d]=pick(VOC);return{q:en(z,'正確的英文拼法是？'),a:w,say:w,o:shuffle([w,...d]),card:w==='nobody'||w==='nothing'?'nobody 和 nothing':w==='children'?'child 的複數':w==='happened'?'過去式：規則動詞':'段考一單字',
+   ex:`${z} → ${w}\n${w==='nobody'?'沒有「人」用 nobody；沒有「東西」才用 nothing。':w==='nothing'?'沒有「東西」用 nothing；沒有「人」用 nobody。':w==='children'?'child 的複數是 children，不是 childs。':'按 🔊 聽發音，邊唸邊拼三次。'}`}},
+ ()=>{const[b,a,reg]=pick(PAST);return{q:en(`${b} → ${B}`,'這個動詞的過去式是？'),a,say:`${b}. ${a}.`,o:opts(a,shuffle(pastWrong(b,a)),()=>a+'s'),card:reg?'過去式：規則動詞':'過去式：不規則要背',
+   ex:reg?`${b} → ${a}\n規則動詞加 ed：y 結尾改 i 加 ed；短母音結尾要重複字尾。`:`${b} → ${a}\n不規則動詞，不能直接加 ed（${b}ed 是錯的），要背起來！`}},
+ ()=>{const[t,b]=pick(PS),row=PAST.find(x=>x[0]===b),a=row[1];return{q:en(t.replace('____',B),`（${b}，過去式）`),a,o:opts(a,shuffle(pastWrong(b,a)),()=>b+'s'),card:row[2]?'過去式：規則動詞':'過去式：不規則要背',
+   ex:`句子裡有 yesterday、last、needed 這些過去的線索 → 用過去式\n${b} → ${a}`}},
+ ()=>{const c=pick([['Jack','his arm','he',['his','him','himself']],['Mary','her leg','she',['her','hers','herself']],['Tom and Ben','their legs','they',['their','them','theirs']],['my brother','his hand','he',['his','him','himself']]]);
+   return{q:en(`Because ${c[0]} broke ${c[1]}, ${B} went to the doctor.`),a:c[2],o:shuffle([c[2],...c[3]]),card:'主詞要用 he，不是 his',
+   ex:`空格是「誰」去看醫生 → 要放「主詞」：${c[2]}\nhis / her / their 是「…的」，後面一定要接東西（his arm）。`}},
+ ()=>{const p=pick(['museum','park','zoo','night market','library']);return{q:en(`I visited ${B} ${p} last weekend.`),a:'the',o:shuffle(['the','（不用填）','an','many']),card:'單數名詞前面要加 a / the',
+   ex:`${p} 是單數名詞，前面不能空著，要加 the 或 a。\nan 只用在母音開頭的字（an apple）；many 後面要接複數。`}},
+ ()=>{const good='Because Jack broke his arm, he went to the doctor.';return{q:'把「Jack went to the doctor.」和「Jack broke his arm.」用 Because 合併，哪一句正確？',long:1,a:good,say:good,
+   o:shuffle([good,'Because Jack broke his arm, his went to the doctor.','Because Jack went to the doctor, he broke his arm.','Because Jack broke his arm. He went to the doctor.']),card:'主詞要用 he，不是 his',
+   ex:`先想因果：「因為」手斷了 → 「所以」去看醫生，because 要接在「原因」前面。\n後半句的主詞用 he，不是 his。\nBecause 開頭的句子，中間用逗號連接，不能用句號斷開。`}},
+];
+const GEN=[L3,L4,L5,LW,L6];
 function deriveSay(q){if(q.say)return q.say;const m=q.q.match(/<span class="en">(.*?)<\/span>/);if(!m)return q.a;
   return m[1].replace(/<br>/g,' ').replace(/<b[^>]*>____<\/b>/,q.a).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim()}
-const CMAP=[{0:['was 還是 were？'],1:['過去進行式的公式'],2:['when 和 during','when：當…的時候'],3:['before 和 after','before / after 放句首'],4:['問句和回答'],5:['問句和回答'],6:['過去進行式的公式','was 還是 were？'],7:['看時間詞選時態']},
+const CMAP_=0;const CMAP=[{0:['was 還是 were？'],1:['過去進行式的公式'],2:['when 和 during','when：當…的時候'],3:['before 和 after','before / after 放句首'],4:['問句和回答'],5:['問句和回答'],6:['過去進行式的公式','was 還是 were？'],7:['看時間詞選時態']},
  {0:['後面接 to V 的動詞','後面接 V-ing 的動詞'],1:['後面接 to V 的動詞','後面接 V-ing 的動詞'],2:['want + 人 + to V'],3:['to V 表示「為了…」'],4:['後面接 to V 的動詞','後面接 V-ing 的動詞']},{},{}];
 const SUFCARD={er:'-er / -or：做…的人',or:'-er / -or：做…的人',ful:'-ful：充滿…的',less:'-less：沒有…的',ly:'-ly：…地（形容詞變副詞）',ness:'-ness：形容詞變名詞'};
 function cardsFor(q){const t=q.card?[q.card]:(CMAP[q.u]||{})[q.g]||[];return CARDS.filter(c=>t.includes(c[1]))}
@@ -339,6 +364,13 @@ const CARDS=[
  [3,'-less：沒有…的','careless、homeless、useless\ncareful 小心的 ↔ careless 粗心的'],
  [3,'-ly：…地（形容詞變副詞）','quickly、slowly、carefully\nhappy → happily（y 改 i）\n用來修飾動詞：drive slowly'],
  [3,'-ness：形容詞變名詞','kindness、sadness、darkness\nhappy → happiness（y 改 i）'],
+ [4,'段考一單字','share 分享、guess 猜、terrible 很糟的\nchildren 孩子們、parents 父母\nremember 記得、finish 完成、circle 圓圈'],
+ [4,'nobody 和 nothing','沒有「人」→ nobody\n沒有「東西」→ nothing\nNobody is here. / I have nothing.'],
+ [4,'child 的複數','child → children（不是 childs）\nman → men、woman → women'],
+ [4,'過去式：規則動詞','直接加 ed：look → looked、happen → happened\ny 改 i 加 ed：study → studied、cry → cried\n重複字尾：jog → jogged、stop → stopped'],
+ [4,'過去式：不規則要背','sell → sold、tell → told\nbuy → bought、bring → brought、teach → taught\nsee → saw、take → took、break → broke'],
+ [4,'主詞要用 he，不是 his','Because Jack broke his arm, he went to the doctor.\nhe / she / they：當主詞（誰做的）\nhis / her / their：「…的」，後面要接東西'],
+ [4,'單數名詞前面要加 a / the','I visited the museum last weekend.\nan 用在母音開頭：an apple'],
 ];
 
 let ST={u:UNITS.map(()=>[0,0]),wins:0,games:0};
@@ -423,7 +455,7 @@ function start(mode,u,len){G={mode,u,len:len||10,me:0,op:0,n:0,hist:[],last:''};
 function over(){if(G.mode==='unit')return G.n>=G.len;const a=G.me,b=G.op;return a===15||b===15||((a>=11||b>=11)&&Math.abs(a-b)>=2)}
 function next(){
   if(over())return result();
-  const u=G.mode==='match'?pick([0,0,0,1,1,1,2,3,3]):G.u;
+  const u=G.mode==='match'?pick([0,0,0,1,1,1,2,3,3,4]):G.u;
   let q,g=0;do{q=makeQ(u)}while(q.q===G.last&&g++<10);G.last=q.q;
   G.q=q;G.n++;G.done=false;G.tries=0;renderQ();
 }
